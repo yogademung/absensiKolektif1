@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registration Successful</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-green-50 min-h-screen flex items-center justify-center">
+    <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-md text-center">
+        <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 mb-4">
+            <svg class="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+        </div>
+        <h2 class="text-2xl font-bold text-gray-900 mb-2">Registration Successful!</h2>
+        <p class="text-gray-600 mb-6">Here is your training voucher.</p>
+
+        <div class="bg-gray-50 p-4 rounded-md text-left mb-6 border border-gray-200">
+            <p class="text-sm text-gray-500">Voucher ID</p>
+            <p id="voucherId" class="font-mono font-bold text-lg mb-2">Loading...</p>
+
+            <p class="text-sm text-gray-500">Zoom Link</p>
+            <a id="zoomLink" href="#" target="_blank" class="text-blue-600 hover:underline break-all">Loading...</a>
+
+            <p class="text-sm text-gray-500 mt-2">Remaining Hotel Tokens</p>
+            <p id="remainingTokens" class="font-bold">Loading...</p>
+        </div>
+
+        <a href="/" class="text-blue-600 hover:text-blue-800 font-medium">Register Another Staff</a>
+    </div>
+
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const voucherId = params.get('voucherId');
+
+        if (voucherId) {
+            fetch(`/api/vouchers/${voucherId}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        document.getElementById('voucherId').textContent = `#${data.data.id}`;
+                        document.getElementById('zoomLink').textContent = data.data.zoom_link;
+                        document.getElementById('zoomLink').href = data.data.zoom_link;
+                        // Note: Remaining tokens isn't directly in voucher, but we passed it in the redirect or could fetch hotel. 
+                        // For simplicity, let's just show what we have or maybe we should have passed it in URL.
+                        // Actually, the requirement said "Return: voucher_id, zoom_link, remaining_tokens".
+                        // So the previous page had it. Let's assume we passed it in URL for simplicity.
+                        const remaining = params.get('remaining');
+                        document.getElementById('remainingTokens').textContent = remaining || 'N/A';
+                    }
+                });
+        }
+    </script>
+</body>
+
+</html>

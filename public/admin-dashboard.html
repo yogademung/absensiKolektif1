@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-100 min-h-screen">
+    <nav class="bg-gray-800 text-white p-4">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-xl font-bold">Admin Dashboard</h1>
+            <button onclick="AdminApp.logout()" class="text-gray-300 hover:text-white">Logout</button>
+        </div>
+    </nav>
+
+    <div class="container mx-auto p-8">
+        <!-- Management Cards -->
+        <h2 class="text-2xl font-bold mb-4 text-gray-800">Management</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <a href="/admin/hotels" class="block p-6 bg-white rounded-lg shadow hover:shadow-md transition">
+                <h2 class="text-xl font-bold mb-2 text-blue-600">Manage Hotels</h2>
+                <p class="text-gray-600">View and update hotel token quotas.</p>
+            </a>
+
+            <a href="/admin/modules" class="block p-6 bg-white rounded-lg shadow hover:shadow-md transition">
+                <h2 class="text-xl font-bold mb-2 text-green-600">Manage Modules</h2>
+                <p class="text-gray-600">Create and edit training modules.</p>
+            </a>
+
+            <a href="/admin/schedules" class="block p-6 bg-white rounded-lg shadow hover:shadow-md transition">
+                <h2 class="text-xl font-bold mb-2 text-purple-600">Manage Schedules</h2>
+                <p class="text-gray-600">Set up training sessions and Zoom links.</p>
+            </a>
+
+            <a href="/admin/admins" class="block p-6 bg-white rounded-lg shadow hover:shadow-md transition">
+                <h2 class="text-xl font-bold mb-2 text-orange-600">Manage Admins</h2>
+                <p class="text-gray-600">Create and manage admin users.</p>
+            </a>
+        </div>
+
+        <!-- Reports Section -->
+        <h2 class="text-2xl font-bold mb-4 text-gray-800">📊 Reports & Analytics</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <a href="/admin/reports"
+                class="block p-6 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg shadow-lg hover:shadow-xl transition text-white">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="text-xl font-bold mb-2">� Schedule Reports</h3>
+                        <p class="text-indigo-100">View hotel registrations and statistics per schedule</p>
+                        <p class="text-sm text-indigo-200 mt-2">Complete token usage logs and registration history</p>
+                    </div>
+                    <svg class="w-12 h-12 opacity-50" fill="currentColor" viewBox="0 0 20 20">
+                        <path
+                            d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
+                    </svg>
+                </div>
+            </a>
+
+            <div
+                class="block p-6 bg-gradient-to-r from-gray-400 to-gray-500 rounded-lg shadow-lg text-white opacity-75">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="text-xl font-bold mb-2">�📈 Token Usage Report</h3>
+                        <p class="text-gray-200">Detailed token usage analytics</p>
+                        <p class="text-sm text-gray-300 mt-2">Coming Soon</p>
+                    </div>
+                    <svg class="w-12 h-12 opacity-50" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd"
+                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z"
+                            clip-rule="evenodd" />
+                    </svg>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/admin.js"></script>
+    <script>AdminApp.checkAuth();</script>
+</body>
+
+</html>
