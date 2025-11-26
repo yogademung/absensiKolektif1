@@ -14,11 +14,16 @@ class AdminAuthService {
             throw new Error('Invalid email or password');
         }
 
-        const token = jwt.sign({ id: admin.id, email: admin.email }, process.env.JWT_SECRET, {
+        const token = jwt.sign({
+            id: admin.id,
+            email: admin.email,
+            role: admin.role,
+            hotel_id: admin.hotel_id
+        }, process.env.JWT_SECRET, {
             expiresIn: '1d'
         });
 
-        return token;
+        return { token, user: { id: admin.id, email: admin.email, role: admin.role, hotel_id: admin.hotel_id } };
     }
 }
 

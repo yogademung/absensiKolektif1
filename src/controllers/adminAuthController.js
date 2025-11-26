@@ -9,12 +9,12 @@ class AdminAuthController {
                 return response(res, 400, false, 'Email and password are required');
             }
 
-            const token = await AdminAuthService.login(email, password);
+            const { token, user } = await AdminAuthService.login(email, password);
 
             // Set cookie for easier frontend handling, but also return in body
             res.cookie('token', token, { httpOnly: true, maxAge: 24 * 60 * 60 * 1000 });
 
-            return response(res, 200, true, 'Login successful', { token });
+            return response(res, 200, true, 'Login successful', { token, user });
         } catch (error) {
             return response(res, 401, false, error.message);
         }

@@ -6,18 +6,18 @@ class Admin {
         return rows[0];
     }
 
-    static async create(email, passwordHash) {
-        const [result] = await db.execute('INSERT INTO admins (email, password_hash) VALUES (?, ?)', [email, passwordHash]);
+    static async create(email, passwordHash, role = 'super_admin', hotelId = null) {
+        const [result] = await db.execute('INSERT INTO admins (email, password_hash, role, hotel_id) VALUES (?, ?, ?, ?)', [email, passwordHash, role, hotelId]);
         return result.insertId;
     }
 
     static async findAll() {
-        const [rows] = await db.execute('SELECT id, email, status, created_at FROM admins ORDER BY created_at DESC');
+        const [rows] = await db.execute('SELECT id, email, role, hotel_id, status, created_at FROM admins ORDER BY created_at DESC');
         return rows;
     }
 
     static async findAllActive() {
-        const [rows] = await db.execute('SELECT id, email, created_at FROM admins WHERE status = ? ORDER BY created_at DESC', ['active']);
+        const [rows] = await db.execute('SELECT id, email, role, hotel_id, created_at FROM admins WHERE status = ? ORDER BY created_at DESC', ['active']);
         return rows;
     }
 
@@ -34,7 +34,7 @@ class Admin {
     }
 
     static async findById(id) {
-        const [rows] = await db.execute('SELECT id, email, status, created_at FROM admins WHERE id = ?', [id]);
+        const [rows] = await db.execute('SELECT id, email, role, hotel_id, status, created_at FROM admins WHERE id = ?', [id]);
         return rows[0];
     }
 }

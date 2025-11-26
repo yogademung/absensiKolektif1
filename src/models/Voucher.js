@@ -30,6 +30,19 @@ class Voucher {
         );
         return rows[0];
     }
+
+    static async getByHotelId(hotelId) {
+        const [rows] = await db.execute(
+            `SELECT v.*, tm.name as module_name, ts.date, ts.session, ts.start_time, ts.end_time, ts.zoom_link, ts.video_link
+             FROM vouchers v
+             JOIN training_modules tm ON v.module_id = tm.id
+             JOIN training_schedules ts ON v.schedule_id = ts.id
+             WHERE v.hotel_id = ?
+             ORDER BY ts.date DESC, ts.start_time DESC`,
+            [hotelId]
+        );
+        return rows;
+    }
 }
 
 module.exports = Voucher;

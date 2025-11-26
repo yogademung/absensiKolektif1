@@ -13,7 +13,7 @@ class AdminManagementController {
 
     static async create(req, res) {
         try {
-            const { email, password } = req.body;
+            const { email, password, role, hotel_id } = req.body;
 
             if (!email || !password) {
                 return response(res, 400, false, 'Email and password are required');
@@ -24,7 +24,7 @@ class AdminManagementController {
             }
 
             const adminId = req.admin?.id;
-            const id = await AdminManagementService.createAdmin(email, password, adminId);
+            const id = await AdminManagementService.createAdmin(email, password, adminId, role, hotel_id);
             return response(res, 201, true, 'Admin created successfully', { id });
         } catch (error) {
             return response(res, 400, false, error.message);

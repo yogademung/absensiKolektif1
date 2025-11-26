@@ -22,19 +22,19 @@ class Schedule {
     }
 
     static async create(data) {
-        const { module_id, date, session, start_time, end_time, zoom_link, max_participants } = data;
+        const { module_id, date, session, start_time, end_time, zoom_link, video_link, max_participants } = data;
         const [result] = await db.execute(
-            'INSERT INTO training_schedules (module_id, date, session, start_time, end_time, zoom_link, max_participants) VALUES (?, ?, ?, ?, ?, ?, ?)',
-            [module_id, date, session, start_time, end_time, zoom_link, max_participants]
+            'INSERT INTO training_schedules (module_id, date, session, start_time, end_time, zoom_link, video_link, max_participants) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+            [module_id, date, session, start_time, end_time, zoom_link, video_link, max_participants]
         );
         return result.insertId;
     }
 
     static async update(id, data) {
-        const { module_id, date, session, start_time, end_time, zoom_link, max_participants } = data;
+        const { module_id, date, session, start_time, end_time, zoom_link, video_link, max_participants } = data;
         await db.execute(
-            'UPDATE training_schedules SET module_id = ?, date = ?, session = ?, start_time = ?, end_time = ?, zoom_link = ?, max_participants = ? WHERE id = ?',
-            [module_id, date, session, start_time, end_time, zoom_link, max_participants, id]
+            'UPDATE training_schedules SET module_id = ?, date = ?, session = ?, start_time = ?, end_time = ?, zoom_link = ?, video_link = ?, max_participants = ? WHERE id = ?',
+            [module_id, date, session, start_time, end_time, zoom_link, video_link, max_participants, id]
         );
     }
 

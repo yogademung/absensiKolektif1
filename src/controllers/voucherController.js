@@ -20,6 +20,16 @@ class VoucherController {
             return response(res, 404, false, error.message);
         }
     }
+
+    static async getHistory(req, res) {
+        try {
+            const { hotelId } = req.params;
+            const history = await VoucherService.getHistory(hotelId);
+            return response(res, 200, true, 'Voucher history', history);
+        } catch (error) {
+            return response(res, 500, false, error.message);
+        }
+    }
 }
 
 module.exports = VoucherController;

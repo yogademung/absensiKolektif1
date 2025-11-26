@@ -66,6 +66,10 @@ class VoucherService {
         if (!voucher) throw new Error('Voucher not found');
         return voucher;
     }
+
+    static async getHistory(hotelId) {
+        return await Voucher.getByHotelId(hotelId);
+    }
 }
 
 module.exports = VoucherService;

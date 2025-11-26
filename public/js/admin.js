@@ -11,8 +11,13 @@ const AdminApp = {
             if (data.success) {
                 // Token is in cookie, but we can also store in localStorage if needed.
                 // For this app, we rely on httpOnly cookie for security, but we might need to know if we are logged in.
-                // We'll redirect to dashboard.
-                window.location.href = '/admin/dashboard';
+
+                const user = data.data.user;
+                if (user && user.role === 'hotel_user') {
+                    window.location.href = '/';
+                } else {
+                    window.location.href = '/admin/dashboard';
+                }
             } else {
                 // Show error alert
                 const errorAlert = document.getElementById('errorAlert');
@@ -272,6 +277,7 @@ const AdminApp = {
                     start_time: document.getElementById('startTime').value,
                     end_time: document.getElementById('endTime').value,
                     zoom_link: document.getElementById('zoomLink').value,
+                    video_link: document.getElementById('videoLink').value || null,
                     max_participants: 50 // Default
                 };
                 await this.createSchedule(payload);
@@ -290,6 +296,7 @@ const AdminApp = {
                     start_time: document.getElementById('editStartTime').value,
                     end_time: document.getElementById('editEndTime').value,
                     zoom_link: document.getElementById('editZoomLink').value,
+                    video_link: document.getElementById('editVideoLink').value || null,
                     max_participants: 50
                 };
                 await this.updateSchedule(id, payload);
@@ -312,6 +319,7 @@ const AdminApp = {
         if (data.success) {
             data.data.forEach(sch => {
                 const date = new Date(sch.date).toLocaleDateString();
+                const videoStatus = sch.video_link ? `<a href="${sch.video_link}" target="_blank" class="text-green-600 hover:underline">✓ Available</a>` : '<span class="text-gray-400">-</span>';
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td class="px-6 py-4 whitespace-nowrap">${date}</td>
@@ -319,8 +327,9 @@ const AdminApp = {
                     <td class="px-6 py-4 whitespace-nowrap">${sch.module_name}</td>
                     <td class="px-6 py-4 whitespace-nowrap">${sch.start_time} - ${sch.end_time}</td>
                     <td class="px-6 py-4 whitespace-nowrap max-w-xs truncate"><a href="${sch.zoom_link}" target="_blank" class="text-blue-600 hover:underline">${sch.zoom_link}</a></td>
+                    <td class="px-6 py-4 whitespace-nowrap">${videoStatus}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                        <button onclick="AdminApp.editSchedule(${sch.id}, ${sch.module_id}, '${sch.date}', '${sch.session}', '${sch.start_time}', '${sch.end_time}', '${sch.zoom_link.replace(/'/g, "\\'")}')"
+                        <button onclick="AdminApp.editSchedule(${sch.id}, ${sch.module_id}, '${sch.date}', '${sch.session}', '${sch.start_time}', '${sch.end_time}', '${sch.zoom_link.replace(/'/g, "\\'")}'${sch.video_link ? `, '${sch.video_link.replace(/'/g, "\\'")}` : ', null'})"
                             class="text-blue-600 hover:text-blue-900">Edit</button>
                         <button onclick="AdminApp.deleteSchedule(${sch.id})" class="text-red-600 hover:text-red-900">Delete</button>
                     </td>
@@ -344,7 +353,7 @@ const AdminApp = {
         }
     },
 
-    editSchedule(id, moduleId, date, session, startTime, endTime, zoomLink) {
+    editSchedule(id, moduleId, date, session, startTime, endTime, zoomLink, videoLink = null) {
         document.getElementById('editScheduleId').value = id;
         document.getElementById('editScheduleModule').value = moduleId;
 
@@ -357,6 +366,7 @@ const AdminApp = {
         document.getElementById('editStartTime').value = startTime;
         document.getElementById('editEndTime').value = endTime;
         document.getElementById('editZoomLink').value = zoomLink;
+        document.getElementById('editVideoLink').value = videoLink || '';
         document.getElementById('editScheduleModal').classList.remove('hidden');
     },
 
@@ -389,15 +399,49 @@ const AdminApp = {
     // --- Admins ---
     async initAdmins() {
         const form = document.getElementById('addAdminForm');
+        const roleSelect = document.getElementById('adminRole');
+        const hotelSelectContainer = document.getElementById('hotelSelectContainer');
+        const hotelSelect = document.getElementById('adminHotel');
+
+        // Load hotels immediately so they're ready when needed
+        await this.loadHotelsForDropdown(hotelSelect);
+
+        if (roleSelect) {
+            roleSelect.addEventListener('change', () => {
+                if (roleSelect.value === 'hotel_user') {
+                    hotelSelectContainer.classList.remove('hidden');
+                } else {
+                    hotelSelectContainer.classList.add('hidden');
+                    hotelSelect.value = '';
+                }
+            });
+        }
+
         if (form) {
             form.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const email = document.getElementById('adminEmail').value;
                 const password = document.getElementById('adminPassword').value;
-                await this.createAdmin(email, password);
+                const role = document.getElementById('adminRole').value;
+                const hotelId = document.getElementById('adminHotel').value;
+
+                await this.createAdmin(email, password, role, hotelId);
             });
         }
         this.loadAdmins();
+    },
+
+    async loadHotelsForDropdown(selectElement) {
+        const res = await fetch('/api/admin/hotels');
+        const data = await res.json();
+        if (data.success) {
+            data.data.forEach(hotel => {
+                const option = document.createElement('option');
+                option.value = hotel.id;
+                option.textContent = hotel.name;
+                selectElement.appendChild(option);
+            });
+        }
     },
 
     async loadAdmins() {
@@ -406,13 +450,30 @@ const AdminApp = {
         const tbody = document.getElementById('adminsTableBody');
         tbody.innerHTML = '';
 
+        // Fetch hotels for mapping
+        const hotelsRes = await fetch('/api/admin/hotels');
+        const hotelsData = await hotelsRes.json();
+        const hotelsMap = {};
+        if (hotelsData.success) {
+            hotelsData.data.forEach(hotel => {
+                hotelsMap[hotel.id] = hotel.name;
+            });
+        }
+
         if (data.success) {
             data.data.forEach(admin => {
                 const createdAt = new Date(admin.created_at).toLocaleDateString();
+                const roleBadge = admin.role === 'hotel_user'
+                    ? '<span class="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">Hotel User</span>'
+                    : '<span class="px-2 py-1 text-xs font-semibold rounded-full bg-purple-100 text-purple-800">Super Admin</span>';
+                const hotelName = admin.hotel_id ? (hotelsMap[admin.hotel_id] || 'Unknown') : '-';
+
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td class="px-6 py-4 whitespace-nowrap">${admin.id}</td>
                     <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900">${admin.email}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">${roleBadge}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">${hotelName}</td>
                     <td class="px-6 py-4 whitespace-nowrap">${createdAt}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <button onclick="AdminApp.deleteAdmin(${admin.id})" class="text-red-600 hover:text-red-900">Delete</button>
@@ -423,17 +484,29 @@ const AdminApp = {
         }
     },
 
-    async createAdmin(email, password) {
+    async createAdmin(email, password, role, hotel_id) {
         // Hide previous alerts
         const successAlert = document.getElementById('successAlert');
         const errorAlert = document.getElementById('errorAlert');
         successAlert.classList.add('hidden');
         errorAlert.classList.add('hidden');
 
+        // Validate hotel selection for hotel_user
+        if (role === 'hotel_user' && !hotel_id) {
+            document.getElementById('errorMessage').textContent = 'Please select a hotel for Hotel User role';
+            errorAlert.classList.remove('hidden');
+            return;
+        }
+
+        const payload = { email, password, role };
+        if (role === 'hotel_user' && hotel_id) {
+            payload.hotel_id = parseInt(hotel_id);
+        }
+
         const res = await fetch('/api/admin/admins', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, password })
+            body: JSON.stringify(payload)
         });
 
         const data = await res.json();

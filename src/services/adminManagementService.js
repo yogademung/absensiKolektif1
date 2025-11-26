@@ -7,7 +7,7 @@ class AdminManagementService {
         return await Admin.findAll();
     }
 
-    static async createAdmin(email, password, creatorAdminId) {
+    static async createAdmin(email, password, creatorAdminId, role = 'super_admin', hotelId = null) {
         // Check if admin already exists
         const existing = await Admin.findByEmail(email);
         if (existing) {
@@ -18,7 +18,7 @@ class AdminManagementService {
         const passwordHash = await bcrypt.hash(password, 10);
 
         // Create admin
-        const adminId = await Admin.create(email, passwordHash);
+        const adminId = await Admin.create(email, passwordHash, role, hotelId);
 
         // Log creation
         if (creatorAdminId) {
@@ -27,7 +27,7 @@ class AdminManagementService {
                 action: 'CREATE',
                 entity_type: 'admin',
                 entity_id: adminId,
-                new_values: { email }
+                new_values: { email, role, hotelId }
             });
         }
 

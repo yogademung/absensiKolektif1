@@ -46,6 +46,24 @@
                     <input type="password" id="adminPassword" required minlength="6"
                         class="mt-1 block w-full rounded-md border border-gray-300 p-2">
                 </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Role</label>
+                    <select id="adminRole" class="mt-1 block w-full rounded-md border border-gray-300 p-2">
+                        <option value="super_admin">Super Admin</option>
+                        <option value="hotel_user">Hotel User</option>
+                    </select>
+                </div>
+
+                <div id="hotelSelectContainer" class="hidden">
+                    <label class="block text-sm font-medium text-gray-700">Assign Hotel <span
+                            class="text-red-500">*</span></label>
+                    <select id="adminHotel" class="mt-1 block w-full rounded-md border border-gray-300 p-2">
+                        <option value="">Select Hotel</option>
+                        <!-- Populated by JS -->
+                    </select>
+                </div>
+
                 <button type="submit" class="bg-orange-600 text-white px-4 py-2 rounded-md hover:bg-orange-700">Add
                     Admin</button>
             </form>
@@ -70,8 +88,12 @@
                     <tr>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID
                         </th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Email</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role
+                        </th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hotel
+                        </th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Created At</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">

@@ -44,8 +44,22 @@ const AdminManagementController = require('./src/controllers/adminManagementCont
 app.post('/api/public/register-admin', AdminManagementController.create);
 
 // Serve frontend pages
+app.get('/login', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'login.html'));
+});
+
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+    const token = req.cookies.token;
+    if (!token) {
+        return res.redirect('/login');
+    }
+    try {
+        const jwt = require('jsonwebtoken');
+        jwt.verify(token, process.env.JWT_SECRET);
+        res.sendFile(path.join(__dirname, 'public', 'index.html'));
+    } catch (err) {
+        res.redirect('/login');
+    }
 });
 
 app.get('/success', (req, res) => {
