@@ -54,21 +54,21 @@
                     <label class="block text-sm font-medium text-gray-700">Session</label>
                     <select id="scheduleSession" required
                         class="mt-1 block w-full rounded-md border border-gray-300 p-2">
-                        <option value="Session 1">Session 1</option>
-                        <option value="Session 2">Session 2</option>
+                        <option value="Session 1">Session 1 (09:30 - 12:30)</option>
+                        <option value="Session 2">Session 2 (13:00 - 16:30)</option>
                     </select>
                 </div>
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700">Start Time</label>
-                    <input type="time" id="startTime" required
-                        class="mt-1 block w-full rounded-md border border-gray-300 p-2">
+                    <input type="time" id="startTime" required readonly
+                        class="mt-1 block w-full rounded-md border border-gray-300 p-2 bg-gray-50" value="09:30">
                 </div>
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700">End Time</label>
-                    <input type="time" id="endTime" required
-                        class="mt-1 block w-full rounded-md border border-gray-300 p-2">
+                    <input type="time" id="endTime" required readonly
+                        class="mt-1 block w-full rounded-md border border-gray-300 p-2 bg-gray-50" value="12:30">
                 </div>
 
                 <div class="col-span-2">
@@ -159,21 +159,21 @@
                     <label class="block text-sm font-medium text-gray-700">Session</label>
                     <select id="editScheduleSession" required
                         class="mt-1 block w-full rounded-md border border-gray-300 p-2">
-                        <option value="Session 1">Session 1</option>
-                        <option value="Session 2">Session 2</option>
+                        <option value="Session 1">Session 1 (09:30 - 12:30)</option>
+                        <option value="Session 2">Session 2 (13:00 - 16:30)</option>
                     </select>
                 </div>
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700">Start Time</label>
-                    <input type="time" id="editStartTime" required
-                        class="mt-1 block w-full rounded-md border border-gray-300 p-2">
+                    <input type="time" id="editStartTime" required readonly
+                        class="mt-1 block w-full rounded-md border border-gray-300 p-2 bg-gray-50">
                 </div>
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700">End Time</label>
-                    <input type="time" id="editEndTime" required
-                        class="mt-1 block w-full rounded-md border border-gray-300 p-2">
+                    <input type="time" id="editEndTime" required readonly
+                        class="mt-1 block w-full rounded-md border border-gray-300 p-2 bg-gray-50">
                 </div>
 
                 <div class="col-span-2">
@@ -205,6 +205,36 @@
 
     <script src="/js/admin.js"></script>
     <script>
+        // Auto-fill times based on session selection
+        function updateTimesForSession(sessionSelect, startTimeInput, endTimeInput) {
+            const session = sessionSelect.value;
+            if (session === 'Session 1') {
+                startTimeInput.value = '09:30';
+                endTimeInput.value = '12:30';
+            } else if (session === 'Session 2') {
+                startTimeInput.value = '13:00';
+                endTimeInput.value = '16:30';
+            }
+        }
+
+        // Add form session change listener
+        document.getElementById('scheduleSession').addEventListener('change', function () {
+            updateTimesForSession(
+                this,
+                document.getElementById('startTime'),
+                document.getElementById('endTime')
+            );
+        });
+
+        // Edit form session change listener
+        document.getElementById('editScheduleSession').addEventListener('change', function () {
+            updateTimesForSession(
+                this,
+                document.getElementById('editStartTime'),
+                document.getElementById('editEndTime')
+            );
+        });
+
         AdminApp.checkAuth();
         AdminApp.initSchedules();
     </script>
