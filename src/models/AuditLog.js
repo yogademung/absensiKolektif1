@@ -2,14 +2,15 @@ const db = require('../config/db');
 
 class AuditLog {
     static async create(logData) {
-        const { admin_id, action, entity_type, entity_id, old_values, new_values, ip_address, user_agent } = logData;
+        const { admin_id, admin_email, action, entity_type, entity_id, old_values, new_values, ip_address, user_agent } = logData;
 
         const [result] = await db.execute(
             `INSERT INTO audit_logs 
-            (admin_id, action, entity_type, entity_id, old_values, new_values, ip_address, user_agent) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+            (admin_id, admin_email, action, entity_type, entity_id, old_values, new_values, ip_address, user_agent) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [
                 admin_id,
+                admin_email || null,
                 action,
                 entity_type,
                 entity_id,

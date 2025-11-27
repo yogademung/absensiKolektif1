@@ -19,6 +19,7 @@ class ScheduleService {
         if (adminId) {
             await AuditLog.create({
                 admin_id: adminId,
+                admin_email: clientInfo.admin_email,
                 action: 'CREATE',
                 entity_type: 'schedule',
                 entity_id: scheduleId,
@@ -41,17 +42,11 @@ class ScheduleService {
         if (adminId) {
             await AuditLog.create({
                 admin_id: adminId,
+                admin_email: clientInfo.admin_email,
                 action: 'UPDATE',
                 entity_type: 'schedule',
                 entity_id: id,
-                old_values: {
-                    module_id: oldSchedule.module_id,
-                    date: oldSchedule.date,
-                    session: oldSchedule.session,
-                    start_time: oldSchedule.start_time,
-                    end_time: oldSchedule.end_time,
-                    zoom_link: oldSchedule.zoom_link
-                },
+                old_values: { module_id: oldSchedule.module_id, date: oldSchedule.date, time: oldSchedule.time, zoom_link: oldSchedule.zoom_link, video_link: oldSchedule.video_link },
                 new_values: data,
                 ip_address: clientInfo.ip_address,
                 user_agent: clientInfo.user_agent
@@ -69,17 +64,11 @@ class ScheduleService {
         if (adminId) {
             await AuditLog.create({
                 admin_id: adminId,
+                admin_email: clientInfo.admin_email,
                 action: 'DELETE',
                 entity_type: 'schedule',
                 entity_id: id,
-                old_values: {
-                    module_id: schedule.module_id,
-                    date: schedule.date,
-                    session: schedule.session,
-                    start_time: schedule.start_time,
-                    end_time: schedule.end_time,
-                    zoom_link: schedule.zoom_link
-                },
+                old_values: { module_id: schedule.module_id, date: schedule.date, time: schedule.time, zoom_link: schedule.zoom_link, video_link: schedule.video_link },
                 ip_address: clientInfo.ip_address,
                 user_agent: clientInfo.user_agent
             });

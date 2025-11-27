@@ -13,7 +13,8 @@ const authAdmin = (req, res, next) => {
         req.admin = decoded;
         req.clientInfo = {
             ip_address: req.headers['x-forwarded-for'] || req.socket.remoteAddress || req.ip,
-            user_agent: req.headers['user-agent']
+            user_agent: req.headers['user-agent'],
+            admin_email: decoded.email
         };
         next();
     } catch (error) {

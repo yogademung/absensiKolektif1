@@ -57,6 +57,10 @@ const AuditLogsApp = {
 
             // Format details (old/new values)
             let details = '';
+
+            // Add admin email to details
+            const emailInfo = adminEmail !== 'User Action' ? `<strong>Admin:</strong> ${adminEmail}<br><br>` : '';
+
             if (log.action === 'CREATE' && log.new_values) {
                 const newVals = JSON.parse(log.new_values);
                 details = this.formatValues(newVals, 'Created');
@@ -130,9 +134,7 @@ const AuditLogsApp = {
         document.getElementById('createActions').textContent = createActions;
         document.getElementById('updateActions').textContent = updateActions;
         document.getElementById('deleteActions').textContent = deleteActions;
-
-        // If we want to show login stats, we might need a new card or just include it in total
-        // For now, let's just make sure it's counted in totalLogs (which it is)
+        document.getElementById('loginActions').textContent = loginActions;
     },
 
     setupEventListeners() {

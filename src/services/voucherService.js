@@ -57,6 +57,7 @@ class VoucherService {
         // 8. Log to Audit (track voucher generation)
         await AuditLog.create({
             admin_id: adminId, // Will be null for user actions
+            admin_email: clientInfo.admin_email,
             action: 'GENERATE_VOUCHER',
             entity_type: 'voucher',
             entity_id: voucherId,

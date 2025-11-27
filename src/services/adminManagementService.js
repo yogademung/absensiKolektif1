@@ -24,6 +24,7 @@ class AdminManagementService {
         if (creatorAdminId) {
             await AuditLog.create({
                 admin_id: creatorAdminId,
+                admin_email: clientInfo.admin_email,
                 action: 'CREATE',
                 entity_type: 'admin',
                 entity_id: adminId,
@@ -47,6 +48,7 @@ class AdminManagementService {
         if (deleterAdminId) {
             await AuditLog.create({
                 admin_id: deleterAdminId,
+                admin_email: clientInfo.admin_email,
                 action: 'DELETE',
                 entity_type: 'admin',
                 entity_id: id,

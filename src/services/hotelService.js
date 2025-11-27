@@ -19,6 +19,7 @@ class HotelService {
         if (adminId) {
             await AuditLog.create({
                 admin_id: adminId,
+                admin_email: clientInfo.admin_email,
                 action: 'CREATE',
                 entity_type: 'hotel',
                 entity_id: hotelId,
@@ -42,6 +43,7 @@ class HotelService {
         if (adminId) {
             await AuditLog.create({
                 admin_id: adminId,
+                admin_email: clientInfo.admin_email,
                 action: 'UPDATE',
                 entity_type: 'hotel',
                 entity_id: id,
@@ -64,6 +66,7 @@ class HotelService {
         if (adminId) {
             await AuditLog.create({
                 admin_id: adminId,
+                admin_email: clientInfo.admin_email,
                 action: 'DELETE',
                 entity_type: 'hotel',
                 entity_id: id,

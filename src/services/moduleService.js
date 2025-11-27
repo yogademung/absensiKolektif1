@@ -19,6 +19,7 @@ class ModuleService {
         if (adminId) {
             await AuditLog.create({
                 admin_id: adminId,
+                admin_email: clientInfo.admin_email,
                 action: 'CREATE',
                 entity_type: 'module',
                 entity_id: moduleId,
@@ -42,6 +43,7 @@ class ModuleService {
         if (adminId) {
             await AuditLog.create({
                 admin_id: adminId,
+                admin_email: clientInfo.admin_email,
                 action: 'UPDATE',
                 entity_type: 'module',
                 entity_id: id,
@@ -64,6 +66,7 @@ class ModuleService {
         if (adminId) {
             await AuditLog.create({
                 admin_id: adminId,
+                admin_email: clientInfo.admin_email,
                 action: 'DELETE',
                 entity_type: 'module',
                 entity_id: id,

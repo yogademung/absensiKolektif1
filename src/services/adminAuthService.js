@@ -28,6 +28,7 @@ class AdminAuthService {
         // Log Login
         await AuditLog.create({
             admin_id: admin.id,
+            admin_email: admin.email,
             action: 'LOGIN',
             entity_type: 'admin',
             entity_id: admin.id,
