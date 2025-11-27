@@ -12,7 +12,7 @@ class HotelService {
         return hotel;
     }
 
-    static async createHotel(name, tokenQuota, adminId) {
+    static async createHotel(name, tokenQuota, adminId, clientInfo = {}) {
         const hotelId = await Hotel.create(name, tokenQuota);
 
         // Log creation
@@ -22,14 +22,16 @@ class HotelService {
                 action: 'CREATE',
                 entity_type: 'hotel',
                 entity_id: hotelId,
-                new_values: { name, token_quota: tokenQuota }
+                new_values: { name, token_quota: tokenQuota },
+                ip_address: clientInfo.ip_address,
+                user_agent: clientInfo.user_agent
             });
         }
 
         return hotelId;
     }
 
-    static async updateHotel(id, data, adminId) {
+    static async updateHotel(id, data, adminId, clientInfo = {}) {
         // Get old values for audit log
         const oldHotel = await Hotel.findById(id);
         if (!oldHotel) throw new Error('Hotel not found');
@@ -44,12 +46,14 @@ class HotelService {
                 entity_type: 'hotel',
                 entity_id: id,
                 old_values: { name: oldHotel.name, token_quota: oldHotel.token_quota },
-                new_values: data
+                new_values: data,
+                ip_address: clientInfo.ip_address,
+                user_agent: clientInfo.user_agent
             });
         }
     }
 
-    static async deleteHotel(id, adminId) {
+    static async deleteHotel(id, adminId, clientInfo = {}) {
         // Get hotel data before deletion for audit log
         const hotel = await Hotel.findById(id);
         if (!hotel) throw new Error('Hotel not found');
@@ -63,7 +67,9 @@ class HotelService {
                 action: 'DELETE',
                 entity_type: 'hotel',
                 entity_id: id,
-                old_values: { name: hotel.name, token_quota: hotel.token_quota }
+                old_values: { name: hotel.name, token_quota: hotel.token_quota },
+                ip_address: clientInfo.ip_address,
+                user_agent: clientInfo.user_agent
             });
         }
     }

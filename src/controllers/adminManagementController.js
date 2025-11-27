@@ -24,7 +24,8 @@ class AdminManagementController {
             }
 
             const adminId = req.admin?.id;
-            const id = await AdminManagementService.createAdmin(email, password, adminId, role, hotel_id);
+            const clientInfo = req.clientInfo;
+            const id = await AdminManagementService.createAdmin(email, password, adminId, role, hotel_id, clientInfo);
             return response(res, 201, true, 'Admin created successfully', { id });
         } catch (error) {
             return response(res, 400, false, error.message);
@@ -35,7 +36,8 @@ class AdminManagementController {
         try {
             const { id } = req.params;
             const adminId = req.admin?.id;
-            await AdminManagementService.deleteAdmin(id, adminId);
+            const clientInfo = req.clientInfo;
+            await AdminManagementService.deleteAdmin(id, adminId, clientInfo);
             return response(res, 200, true, 'Admin deleted');
         } catch (error) {
             return response(res, 500, false, error.message);

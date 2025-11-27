@@ -12,7 +12,7 @@ class ScheduleService {
         return schedule;
     }
 
-    static async createSchedule(data, adminId) {
+    static async createSchedule(data, adminId, clientInfo = {}) {
         const scheduleId = await Schedule.create(data);
 
         // Log creation
@@ -22,14 +22,16 @@ class ScheduleService {
                 action: 'CREATE',
                 entity_type: 'schedule',
                 entity_id: scheduleId,
-                new_values: data
+                new_values: data,
+                ip_address: clientInfo.ip_address,
+                user_agent: clientInfo.user_agent
             });
         }
 
         return scheduleId;
     }
 
-    static async updateSchedule(id, data, adminId) {
+    static async updateSchedule(id, data, adminId, clientInfo = {}) {
         // Get old values for audit log
         const oldSchedule = await this.getScheduleById(id);
 
@@ -50,12 +52,14 @@ class ScheduleService {
                     end_time: oldSchedule.end_time,
                     zoom_link: oldSchedule.zoom_link
                 },
-                new_values: data
+                new_values: data,
+                ip_address: clientInfo.ip_address,
+                user_agent: clientInfo.user_agent
             });
         }
     }
 
-    static async deleteSchedule(id, adminId) {
+    static async deleteSchedule(id, adminId, clientInfo = {}) {
         // Get schedule data before deletion for audit log
         const schedule = await this.getScheduleById(id);
 
@@ -75,7 +79,9 @@ class ScheduleService {
                     start_time: schedule.start_time,
                     end_time: schedule.end_time,
                     zoom_link: schedule.zoom_link
-                }
+                },
+                ip_address: clientInfo.ip_address,
+                user_agent: clientInfo.user_agent
             });
         }
     }

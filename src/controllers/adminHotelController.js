@@ -17,7 +17,8 @@ class AdminHotelController {
             if (!name) return response(res, 400, false, 'Name is required');
 
             const adminId = req.admin?.id; // From authAdmin middleware
-            const id = await HotelService.createHotel(name, token_quota || 0, adminId);
+            const clientInfo = req.clientInfo;
+            const id = await HotelService.createHotel(name, token_quota || 0, adminId, clientInfo);
             return response(res, 201, true, 'Hotel created', { id });
         } catch (error) {
             return response(res, 500, false, error.message);
@@ -29,8 +30,9 @@ class AdminHotelController {
             const { id } = req.params;
             const { name, token_quota } = req.body;
             const adminId = req.admin?.id;
+            const clientInfo = req.clientInfo;
 
-            await HotelService.updateHotel(id, { name, token_quota }, adminId);
+            await HotelService.updateHotel(id, { name, token_quota }, adminId, clientInfo);
             return response(res, 200, true, 'Hotel updated');
         } catch (error) {
             return response(res, 500, false, error.message);
@@ -41,8 +43,9 @@ class AdminHotelController {
         try {
             const { id } = req.params;
             const adminId = req.admin?.id;
+            const clientInfo = req.clientInfo;
 
-            await HotelService.deleteHotel(id, adminId);
+            await HotelService.deleteHotel(id, adminId, clientInfo);
             return response(res, 200, true, 'Hotel deleted');
         } catch (error) {
             return response(res, 500, false, error.message);

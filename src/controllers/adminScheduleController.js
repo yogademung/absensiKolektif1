@@ -15,7 +15,8 @@ class AdminScheduleController {
     static async create(req, res) {
         try {
             const adminId = req.admin?.id;
-            const id = await ScheduleService.createSchedule(req.body, adminId);
+            const clientInfo = req.clientInfo;
+            const id = await ScheduleService.createSchedule(req.body, adminId, clientInfo);
             return response(res, 201, true, 'Schedule created', { id });
         } catch (error) {
             return response(res, 500, false, error.message);
@@ -26,7 +27,8 @@ class AdminScheduleController {
         try {
             const { id } = req.params;
             const adminId = req.admin?.id;
-            await ScheduleService.updateSchedule(id, req.body, adminId);
+            const clientInfo = req.clientInfo;
+            await ScheduleService.updateSchedule(id, req.body, adminId, clientInfo);
             return response(res, 200, true, 'Schedule updated');
         } catch (error) {
             return response(res, 500, false, error.message);
@@ -37,7 +39,8 @@ class AdminScheduleController {
         try {
             const { id } = req.params;
             const adminId = req.admin?.id;
-            await ScheduleService.deleteSchedule(id, adminId);
+            const clientInfo = req.clientInfo;
+            await ScheduleService.deleteSchedule(id, adminId, clientInfo);
             return response(res, 200, true, 'Schedule deleted');
         } catch (error) {
             return response(res, 500, false, error.message);

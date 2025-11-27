@@ -7,7 +7,7 @@ class AdminManagementService {
         return await Admin.findAll();
     }
 
-    static async createAdmin(email, password, creatorAdminId, role = 'super_admin', hotelId = null) {
+    static async createAdmin(email, password, creatorAdminId, role = 'super_admin', hotelId = null, clientInfo = {}) {
         // Check if admin already exists
         const existing = await Admin.findByEmail(email);
         if (existing) {
@@ -27,14 +27,16 @@ class AdminManagementService {
                 action: 'CREATE',
                 entity_type: 'admin',
                 entity_id: adminId,
-                new_values: { email, role, hotelId }
+                new_values: { email, role, hotelId },
+                ip_address: clientInfo.ip_address,
+                user_agent: clientInfo.user_agent
             });
         }
 
         return adminId;
     }
 
-    static async deleteAdmin(id, deleterAdminId) {
+    static async deleteAdmin(id, deleterAdminId, clientInfo = {}) {
         // Get admin data before deletion for audit log
         const admin = await Admin.findById(id);
         if (!admin) throw new Error('Admin not found');
@@ -48,7 +50,9 @@ class AdminManagementService {
                 action: 'DELETE',
                 entity_type: 'admin',
                 entity_id: id,
-                old_values: { email: admin.email }
+                old_values: { email: admin.email },
+                ip_address: clientInfo.ip_address,
+                user_agent: clientInfo.user_agent
             });
         }
     }

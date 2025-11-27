@@ -9,6 +9,7 @@ const adminModuleRoutes = require('./src/routes/adminModuleRoutes');
 const adminScheduleRoutes = require('./src/routes/adminScheduleRoutes');
 const adminManagementRoutes = require('./src/routes/adminManagementRoutes');
 const reportRoutes = require('./src/routes/reportRoutes');
+const auditLogRoutes = require('./src/routes/auditLogRoutes');
 const voucherRoutes = require('./src/routes/voucherRoutes');
 
 const app = express();
@@ -27,6 +28,7 @@ app.use('/api/admin/modules', adminModuleRoutes);
 app.use('/api/admin/schedules', adminScheduleRoutes);
 app.use('/api/admin/admins', adminManagementRoutes);
 app.use('/api/admin/reports', reportRoutes);
+app.use('/api/admin/audit-logs', auditLogRoutes);
 app.use('/api/vouchers', voucherRoutes);
 
 // Public API for dropdowns (Reusing controllers but bypassing auth for these specific routes)
@@ -96,6 +98,10 @@ app.get('/admin/admins', (req, res) => {
 
 app.get('/admin/reports', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'admin-reports.html'));
+});
+
+app.get('/admin/audit-logs', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'admin-audit-logs.html'));
 });
 
 // Start server

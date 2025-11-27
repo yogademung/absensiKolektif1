@@ -2,10 +2,11 @@ const Voucher = require('../models/Voucher');
 const Hotel = require('../models/Hotel');
 const Schedule = require('../models/Schedule');
 const TokenLog = require('../models/TokenLog');
+const AuditLog = require('../models/AuditLog');
 const db = require('../config/db'); // For transactions if needed, but we'll keep it simple for now
 
 class VoucherService {
-    static async createVoucher(data) {
+    static async createVoucher(data, adminId = null, clientInfo = {}) {
         const { staff_name, hotel_id, module_id, schedule_id } = data;
 
         // 1. Check Hotel Quota
@@ -52,6 +53,25 @@ class VoucherService {
             ? 'Voucher Registration (First - Token Deducted)'
             : 'Voucher Registration (Additional - No Token Deducted)';
         await TokenLog.create(hotel_id, voucherId, tokenChange, reason);
+
+        // 8. Log to Audit (track voucher generation)
+        await AuditLog.create({
+            admin_id: adminId, // Will be null for user actions
+            action: 'GENERATE_VOUCHER',
+            entity_type: 'voucher',
+            entity_id: voucherId,
+            new_values: {
+                staff_name,
+                hotel_id,
+                hotel_name: hotel.name,
+                module_id,
+                schedule_id,
+                token_cost: tokenCost,
+                is_first_registration: isFirstRegistration
+            },
+            ip_address: clientInfo.ip_address,
+            user_agent: clientInfo.user_agent
+        });
 
         return {
             voucherId,
