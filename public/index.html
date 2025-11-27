@@ -6,6 +6,50 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Training Voucher Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @media print {
+
+            /* Hide elements that shouldn't be printed */
+            nav,
+            .no-print,
+            button {
+                display: none !important;
+            }
+
+            /* Hide the registration modal */
+            #registrationModal {
+                display: none !important;
+            }
+
+            /* Ensure proper page layout */
+            body {
+                background: white;
+            }
+
+            /* Make table more readable */
+            table {
+                page-break-inside: auto;
+            }
+
+            tr {
+                page-break-inside: avoid;
+                page-break-after: auto;
+            }
+
+            /* Remove shadows and adjust colors for print */
+            .bg-white {
+                box-shadow: none !important;
+            }
+
+            /* Ensure text is black for better print quality */
+            .text-gray-500,
+            .text-gray-600,
+            .text-gray-700,
+            .text-gray-800 {
+                color: black !important;
+            }
+        }
+    </style>
 </head>
 
 <body class="bg-gray-100 min-h-screen">
@@ -32,11 +76,27 @@
             </div>
         </div>
 
-        <!-- Action Button -->
-        <div class="mb-6">
+        <!-- Action Buttons -->
+        <div class="mb-6 flex gap-3">
             <button onclick="openRegistrationModal()"
-                class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg shadow-lg font-semibold">
+                class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg shadow-lg font-semibold no-print">
                 + Register New Training
+            </button>
+            <button onclick="printSchedule()"
+                class="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg shadow-lg font-semibold hover:bg-blue-700 transition no-print">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                </svg>
+                Print Schedule
+            </button>
+            <button onclick="exportScheduleToCSV()"
+                class="inline-flex items-center px-6 py-3 bg-purple-600 text-white rounded-lg shadow-lg font-semibold hover:bg-purple-700 transition no-print">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                Export to CSV
             </button>
         </div>
 

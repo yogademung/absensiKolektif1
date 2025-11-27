@@ -19,6 +19,195 @@ function logout() {
         });
 }
 
+function printSchedule() {
+    // Get the table element
+    const table = document.querySelector('.min-w-full');
+    const tbody = document.getElementById('historyTableBody');
+
+    if (!tbody || tbody.rows.length === 0) {
+        alert('No schedule data to print');
+        return;
+    }
+
+    // Create a new window for printing
+    const printWindow = window.open('', '_blank');
+
+    // Process table rows to extract actual URLs from links
+    let tableRows = '';
+    Array.from(tbody.rows).forEach(row => {
+        let rowHtml = '<tr>';
+        Array.from(row.cells).forEach((cell, index) => {
+            // Check if this is the Zoom Link column (index 5) or Training Video column (index 6)
+            if (index === 5 || index === 6) {
+                const link = cell.querySelector('a');
+                if (link && link.href) {
+                    // Display the actual URL
+                    rowHtml += `<td>${link.href}</td>`;
+                } else {
+                    // Display the text content if no link
+                    rowHtml += `<td>${cell.textContent.trim()}</td>`;
+                }
+            } else {
+                // For other columns, just use the text content
+                rowHtml += `<td>${cell.textContent.trim()}</td>`;
+            }
+        });
+        rowHtml += '</tr>';
+        tableRows += rowHtml;
+    });
+
+    // Build the print content
+    const printContent = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Schedule History - Print</title>
+            <style>
+                body {
+                    font-family: Arial, sans-serif;
+                    margin: 20px;
+                }
+                h1 {
+                    text-align: center;
+                    color: #1f2937;
+                    margin-bottom: 10px;
+                }
+                .hotel-info {
+                    text-align: center;
+                    color: #2563eb;
+                    font-weight: 600;
+                    margin-bottom: 20px;
+                    font-size: 16px;
+                }
+                table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    margin-top: 20px;
+                }
+                th {
+                    background-color: #f9fafb;
+                    border: 1px solid #e5e7eb;
+                    padding: 12px 8px;
+                    text-align: left;
+                    font-size: 11px;
+                    font-weight: 600;
+                    color: #6b7280;
+                    text-transform: uppercase;
+                }
+                td {
+                    border: 1px solid #e5e7eb;
+                    padding: 10px 8px;
+                    font-size: 13px;
+                    color: #1f2937;
+                    word-break: break-all;
+                }
+                tr:nth-child(even) {
+                    background-color: #f9fafb;
+                }
+                .print-date {
+                    text-align: right;
+                    color: #6b7280;
+                    font-size: 12px;
+                    margin-top: 20px;
+                }
+                @media print {
+                    body { margin: 10px; }
+                }
+            </style>
+        </head>
+        <body>
+            <h1>Training Schedule History</h1>
+            <div class="hotel-info">
+                ${userHotelName || 'Hotel'}
+            </div>
+            <table>
+                <thead>
+                    ${table.querySelector('thead').innerHTML}
+                </thead>
+                <tbody>
+                    ${tableRows}
+                </tbody>
+            </table>
+            <div class="print-date">
+                Printed on: ${new Date().toLocaleString()}
+            </div>
+            <script>
+                window.onload = function() {
+                    window.print();
+                    window.onafterprint = function() {
+                        window.close();
+                    };
+                };
+            </script>
+        </body>
+        </html>
+    `;
+
+    printWindow.document.write(printContent);
+    printWindow.document.close();
+}
+
+function exportScheduleToCSV() {
+    // Get schedule history data from the table
+    const tbody = document.getElementById('historyTableBody');
+    const rows = tbody.querySelectorAll('tr');
+
+    if (rows.length === 0 || (rows.length === 1 && rows[0].cells.length === 1)) {
+        alert('No schedule data to export');
+        return;
+    }
+
+    // CSV Headers with semicolon delimiter
+    let csv = 'sep=;\nDate;Module;Session;Time;Staff Name;Zoom Link;Training Video;Status;Token Cost\n';
+
+    // Add data rows
+    rows.forEach(row => {
+        if (row.cells.length > 1) { // Skip "no data" rows
+            const cells = row.cells;
+            const rowData = [];
+
+            for (let i = 0; i < cells.length; i++) {
+                let cellText = cells[i].textContent.trim();
+                // Remove extra whitespace and newlines
+                cellText = cellText.replace(/\s+/g, ' ');
+
+                // Handle links - extract URL if present
+                const link = cells[i].querySelector('a');
+                if (link) {
+                    cellText = link.href;
+                }
+
+                // Escape quotes and wrap in quotes if contains semicolon
+                if (cellText.includes(';') || cellText.includes('"')) {
+                    cellText = '"' + cellText.replace(/"/g, '""') + '"';
+                }
+                rowData.push(cellText);
+            }
+
+            csv += rowData.join(';') + '\n';
+        }
+    });
+
+    const BOM = new Uint8Array([0xEF, 0xBB, 0xBF]);
+    // Create download link
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+
+    // Generate filename with hotel name and timestamp
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+    const hotelName = userHotelName.replace(/\s+/g, '_').toLowerCase();
+    const filename = `schedule_${hotelName}_${timestamp}.csv`;
+
+    link.setAttribute('href', url);
+    link.setAttribute('download', filename);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+
 async function loadTokenInfo() {
     if (!userHotelId) return;
 

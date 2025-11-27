@@ -6,6 +6,45 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Schedule Reports</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @media print {
+
+            /* Hide elements that shouldn't be printed */
+            nav,
+            .no-print,
+            button {
+                display: none !important;
+            }
+
+            /* Ensure proper page layout */
+            body {
+                background: white;
+            }
+
+            /* Make table more readable */
+            table {
+                page-break-inside: auto;
+            }
+
+            tr {
+                page-break-inside: avoid;
+                page-break-after: auto;
+            }
+
+            /* Remove shadows and adjust colors for print */
+            .bg-white {
+                box-shadow: none !important;
+            }
+
+            /* Ensure text is black for better print quality */
+            .text-gray-500,
+            .text-gray-600,
+            .text-gray-700,
+            .text-gray-800 {
+                color: black !important;
+            }
+        }
+    </style>
 </head>
 
 <body class="bg-gray-100 min-h-screen">
@@ -21,7 +60,7 @@
 
     <div class="container mx-auto p-8">
         <!-- Back Button -->
-        <div class="mb-6">
+        <div class="mb-6 no-print">
             <a href="/admin/dashboard"
                 class="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition">
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -34,12 +73,34 @@
 
         <!-- Page Header -->
         <div class="bg-white p-6 rounded-lg shadow mb-8">
-            <h2 class="text-2xl font-bold text-gray-800 mb-2">Token Usage & Registration Logs</h2>
-            <p class="text-gray-600">Complete history of all token transactions and staff registrations</p>
+            <div class="flex justify-between items-center">
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-800 mb-2">Token Usage & Registration Logs</h2>
+                    <p class="text-gray-600">Complete history of all token transactions and staff registrations</p>
+                </div>
+                <div class="flex gap-3 no-print">
+                    <button onclick="ReportsApp.printReport()"
+                        class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                        </svg>
+                        Print Report
+                    </button>
+                    <button onclick="ReportsApp.exportToCSV()"
+                        class="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        Export to CSV
+                    </button>
+                </div>
+            </div>
         </div>
 
         <!-- Filters -->
-        <div class="bg-white p-4 rounded-lg shadow mb-6">
+        <div class="bg-white p-4 rounded-lg shadow mb-6 no-print">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Filter by Hotel</label>
