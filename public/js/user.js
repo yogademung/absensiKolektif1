@@ -282,6 +282,42 @@ async function loadHistory() {
     }
 }
 
+async function loadTokenExpiration() {
+    try {
+        // 1. Fetch maximum_expired value from others_information
+        const infoRes = await fetch('/api/public/others-information?type=maximum_expired');
+        const infoData = await infoRes.json();
+        let maxExpiredDays = 90; // Default value
+
+        if (infoData.success && infoData.data.length > 0) {
+            maxExpiredDays = parseInt(infoData.data[0].detail) || 90;
+        }
+
+        // 2. Fetch all schedules to find the first one
+        const schedRes = await fetch('/api/public/schedules');
+        const schedData = await schedRes.json();
+
+        if (schedData.success && schedData.data.length > 0) {
+            // Sort schedules by date ascending to find the earliest
+            const sortedSchedules = schedData.data.sort((a, b) => new Date(a.date) - new Date(b.date));
+            const firstScheduleDate = new Date(sortedSchedules[0].date);
+
+            // 3. Calculate Expiration Date = First Schedule Date + maximum_expired days
+            const expirationDate = new Date(firstScheduleDate);
+            expirationDate.setDate(expirationDate.getDate() + maxExpiredDays);
+
+            // 4. Display in Indonesian format
+            const options = { year: 'numeric', month: 'long', day: 'numeric' };
+            document.getElementById('tokenExpiration').textContent = expirationDate.toLocaleDateString('id-ID', options);
+        } else {
+            document.getElementById('tokenExpiration').textContent = '-';
+        }
+    } catch (err) {
+        console.error('Failed to load token expiration:', err);
+        document.getElementById('tokenExpiration').textContent = '-';
+    }
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
     const hotelSelect = document.getElementById('hotelSelect');
     const moduleSelect = document.getElementById('moduleSelect');
@@ -305,6 +341,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Load token info and history
     await loadTokenInfo();
     await loadHistory();
+    await loadTokenExpiration();
 
     // Fetch Hotels
     fetch('/api/public/hotels')
