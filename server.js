@@ -30,6 +30,8 @@ app.use('/api/admin/admins', adminManagementRoutes);
 app.use('/api/admin/reports', reportRoutes);
 app.use('/api/admin/audit-logs', auditLogRoutes);
 app.use('/api/vouchers', voucherRoutes);
+app.use('/api/admin/hotel-schedules', require('./src/routes/adminHotelScheduleRoutes'));
+app.use('/api/admin/others-information', require('./src/routes/adminOthersInformationRoutes'));
 
 // Public API for dropdowns (Reusing controllers but bypassing auth for these specific routes)
 // Note: In a real app, we might want separate controllers or cleaner route structure.
@@ -76,6 +78,10 @@ app.get('/admin/register', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'admin-register.html'));
 });
 
+app.get('/admin/others-info', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'admin-others-info.html'));
+});
+
 app.get('/admin/dashboard', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'admin-dashboard.html'));
 });
@@ -90,6 +96,10 @@ app.get('/admin/modules', (req, res) => {
 
 app.get('/admin/schedules', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'admin-schedules.html'));
+});
+
+app.get('/admin/hotel-schedules', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'admin-hotel-schedules.html'));
 });
 
 app.get('/admin/admins', (req, res) => {

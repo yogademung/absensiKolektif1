@@ -673,5 +673,603 @@ const AdminApp = {
             detailRow.classList.add('hidden');
             button.textContent = 'View Details ▼';
         }
+    },
+
+    // --- Custom Modal Helpers ---
+    showAlert(title, message, type = 'info') {
+        const modal = document.getElementById('customAlert');
+        const icon = document.getElementById('alertIcon');
+        const titleEl = document.getElementById('alertTitle');
+        const messageEl = document.getElementById('alertMessage');
+        const okBtn = document.getElementById('alertOkBtn');
+
+        titleEl.textContent = title;
+        messageEl.textContent = message;
+
+        // Set icon based on type
+        let iconHTML = '';
+        let iconClass = '';
+
+        switch (type) {
+            case 'success':
+                iconClass = 'bg-green-100';
+                iconHTML = `<svg class="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                </svg>`;
+                break;
+            case 'error':
+                iconClass = 'bg-red-100';
+                iconHTML = `<svg class="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>`;
+                break;
+            case 'warning':
+                iconClass = 'bg-yellow-100';
+                iconHTML = `<svg class="h-6 w-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                </svg>`;
+                break;
+            default:
+                iconClass = 'bg-blue-100';
+                iconHTML = `<svg class="h-6 w-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>`;
+        }
+
+        icon.className = `mx-auto flex items-center justify-center h-12 w-12 rounded-full mb-4 ${iconClass}`;
+        icon.innerHTML = iconHTML;
+
+        modal.classList.remove('hidden');
+
+        return new Promise((resolve) => {
+            okBtn.onclick = () => {
+                modal.classList.add('hidden');
+                resolve(true);
+            };
+        });
+    },
+
+    showSuccess(message) {
+        return this.showAlert('✅ Berhasil!', message, 'success');
+    },
+
+    showError(message) {
+        return this.showAlert('❌ Error', message, 'error');
+    },
+
+    showWarning(message) {
+        return this.showAlert('⚠️ Peringatan', message, 'warning');
+    },
+
+    showConfirm(title, message, details = '') {
+        const modal = document.getElementById('customConfirm');
+        const titleEl = document.getElementById('confirmTitle');
+        const messageEl = document.getElementById('confirmMessage');
+        const detailsEl = document.getElementById('confirmDetails');
+        const okBtn = document.getElementById('confirmOkBtn');
+        const cancelBtn = document.getElementById('confirmCancelBtn');
+
+        titleEl.textContent = title;
+        messageEl.textContent = message;
+
+        if (details) {
+            detailsEl.innerHTML = details;
+            detailsEl.classList.remove('hidden');
+        } else {
+            detailsEl.classList.add('hidden');
+        }
+
+        modal.classList.remove('hidden');
+
+        return new Promise((resolve) => {
+            okBtn.onclick = () => {
+                modal.classList.add('hidden');
+                resolve(true);
+            };
+            cancelBtn.onclick = () => {
+                modal.classList.add('hidden');
+                resolve(false);
+            };
+        });
+    },
+
+    // --- Hotel Schedules ---
+    async initHotelSchedules() {
+        // Initialize Select2 for hotels
+        $('#hotelSelect').select2({
+            placeholder: 'Search and select hotels...',
+            allowClear: true,
+            width: '100%'
+        });
+
+        // Initialize Select2 for schedules
+        $('#scheduleSelect').select2({
+            placeholder: 'Search and select schedules...',
+            allowClear: true,
+            width: '100%'
+        });
+
+        // Load hotels for multi-select
+        await this.loadHotelsForMultiSelect();
+
+        // Load schedules for manual mode
+        await this.loadSchedulesForMultiSelect();
+
+        // Load hotels for filter dropdown
+        await this.loadHotelsForFilter();
+
+        // Load current assignments
+        await this.loadHotelSchedules();
+
+        // Add date change listeners for preview
+        const startDate = document.getElementById('startDate');
+        const endDate = document.getElementById('endDate');
+        if (startDate && endDate) {
+            startDate.addEventListener('change', () => this.updateDateRangePreview());
+            endDate.addEventListener('change', () => this.updateDateRangePreview());
+        }
+    },
+
+    async loadHotelsForMultiSelect() {
+        const res = await fetch('/api/admin/hotels');
+        const data = await res.json();
+        const select = $('#hotelSelect');
+        select.empty();
+
+        if (data.success) {
+            data.data.forEach(hotel => {
+                const availableTokens = hotel.token_quota - hotel.token_used;
+                const option = new Option(
+                    `${hotel.name} (${availableTokens} tokens available)`,
+                    hotel.id,
+                    false,
+                    false
+                );
+                select.append(option);
+            });
+        }
+        select.trigger('change');
+    },
+
+    async loadSchedulesForMultiSelect() {
+        const res = await fetch('/api/admin/schedules');
+        const data = await res.json();
+        const select = $('#scheduleSelect');
+        select.empty();
+
+        if (data.success) {
+            data.data.forEach(schedule => {
+                const date = new Date(schedule.date).toLocaleDateString();
+                const option = new Option(
+                    `${date} - ${schedule.module_name} (${schedule.session})`,
+                    schedule.id,
+                    false,
+                    false
+                );
+                select.append(option);
+            });
+        }
+        select.trigger('change');
+    },
+
+    async loadHotelsForFilter() {
+        const res = await fetch('/api/admin/hotels');
+        const data = await res.json();
+        const select = document.getElementById('filterHotel');
+        select.innerHTML = '<option value="">All Hotels</option>';
+
+        if (data.success) {
+            data.data.forEach(hotel => {
+                const option = document.createElement('option');
+                option.value = hotel.id;
+                option.textContent = hotel.name;
+                select.appendChild(option);
+            });
+        }
+    },
+
+    switchAssignmentMode(mode) {
+        const manualMode = document.getElementById('manualMode');
+        const dateRangeMode = document.getElementById('dateRangeMode');
+        const manualTab = document.getElementById('manualTab');
+        const dateRangeTab = document.getElementById('dateRangeTab');
+
+        if (mode === 'manual') {
+            manualMode.classList.remove('hidden');
+            dateRangeMode.classList.add('hidden');
+            manualTab.classList.add('active', 'border-purple-600', 'text-purple-600');
+            manualTab.classList.remove('border-transparent', 'text-gray-500');
+            dateRangeTab.classList.remove('active', 'border-purple-600', 'text-purple-600');
+            dateRangeTab.classList.add('border-transparent', 'text-gray-500');
+        } else {
+            manualMode.classList.add('hidden');
+            dateRangeMode.classList.remove('hidden');
+            dateRangeTab.classList.add('active', 'border-purple-600', 'text-purple-600');
+            dateRangeTab.classList.remove('border-transparent', 'text-gray-500');
+            manualTab.classList.remove('active', 'border-purple-600', 'text-purple-600');
+            manualTab.classList.add('border-transparent', 'text-gray-500');
+        }
+    },
+
+    async updateDateRangePreview() {
+        const startDate = document.getElementById('startDate').value;
+        const endDate = document.getElementById('endDate').value;
+        const preview = document.getElementById('dateRangePreview');
+        const previewText = document.getElementById('previewText');
+
+        if (startDate && endDate) {
+            // Fetch schedules in range
+            const res = await fetch(`/api/admin/schedules`);
+            const data = await res.json();
+
+            if (data.success) {
+                const schedulesInRange = data.data.filter(s => {
+                    return s.date >= startDate && s.date <= endDate;
+                });
+
+                previewText.textContent = `${schedulesInRange.length} schedule(s) found between ${new Date(startDate).toLocaleDateString()} and ${new Date(endDate).toLocaleDateString()}`;
+                preview.classList.remove('hidden');
+            }
+        } else {
+            preview.classList.add('hidden');
+        }
+    },
+
+    async assignHotelsManual() {
+        const hotelIds = $('#hotelSelect').val();
+        const scheduleIds = $('#scheduleSelect').val();
+
+        if (!hotelIds || hotelIds.length === 0) {
+            await this.showWarning('Silakan pilih minimal satu hotel terlebih dahulu.');
+            return;
+        }
+
+        if (!scheduleIds || scheduleIds.length === 0) {
+            await this.showWarning('Silakan pilih minimal satu jadwal terlebih dahulu.');
+            return;
+        }
+
+        const totalAssignments = hotelIds.length * scheduleIds.length;
+        const totalTokens = scheduleIds.length;
+        const details = `
+            <div class="space-y-2">
+                <div class="flex justify-between">
+                    <span class="text-gray-600">Jumlah Hotel:</span>
+                    <span class="font-semibold">${hotelIds.length}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600">Jumlah Jadwal:</span>
+                    <span class="font-semibold">${scheduleIds.length}</span>
+                </div>
+                <div class="flex justify-between border-t pt-2">
+                    <span class="text-gray-600">Total Assignment:</span>
+                    <span class="font-semibold">${totalAssignments}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-600">Token per Hotel:</span>
+                    <span class="font-semibold text-red-600">-${totalTokens}</span>
+                </div>
+            </div>
+        `;
+
+        const confirmed = await this.showConfirm(
+            'Konfirmasi Assignment',
+            'Apakah Anda yakin ingin melanjutkan?',
+            details
+        );
+
+        if (!confirmed) return;
+
+        try {
+            const res = await fetch('/api/admin/hotel-schedules/bulk', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    hotel_ids: hotelIds.map(id => parseInt(id)),
+                    schedule_ids: scheduleIds.map(id => parseInt(id))
+                })
+            });
+
+            const data = await res.json();
+
+            if (data.success) {
+                await this.showSuccess(`Berhasil membuat ${data.data.created} assignment!`);
+                $('#hotelSelect').val(null).trigger('change');
+                $('#scheduleSelect').val(null).trigger('change');
+                await this.loadHotelSchedules();
+                await this.loadHotelsForMultiSelect(); // Refresh token counts
+            } else {
+                await this.showError(data.message);
+            }
+        } catch (error) {
+            await this.showError(error.message);
+        }
+    },
+
+    async assignHotelsByDateRange() {
+        const hotelIds = $('#hotelSelect').val();
+        const startDate = document.getElementById('startDate').value;
+        const endDate = document.getElementById('endDate').value;
+
+        if (!hotelIds || hotelIds.length === 0) {
+            await this.showWarning('Silakan pilih minimal satu hotel terlebih dahulu.');
+            return;
+        }
+
+        if (!startDate || !endDate) {
+            await this.showWarning('Silakan pilih tanggal mulai dan tanggal akhir.');
+            return;
+        }
+
+        if (startDate > endDate) {
+            await this.showWarning('Tanggal mulai harus lebih awal atau sama dengan tanggal akhir.');
+            return;
+        }
+
+        try {
+            const res = await fetch('/api/admin/hotel-schedules/bulk-by-date', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    hotel_ids: hotelIds.map(id => parseInt(id)),
+                    start_date: startDate,
+                    end_date: endDate
+                })
+            });
+
+            const data = await res.json();
+
+            if (data.success) {
+                await this.showSuccess(`Berhasil membuat ${data.data.created} assignment untuk ${hotelIds.length} hotel!`);
+                $('#hotelSelect').val(null).trigger('change');
+                document.getElementById('startDate').value = '';
+                document.getElementById('endDate').value = '';
+                document.getElementById('dateRangePreview').classList.add('hidden');
+                await this.loadHotelSchedules();
+                await this.loadHotelsForMultiSelect(); // Refresh token counts
+            } else {
+                await this.showError(data.message);
+            }
+        } catch (error) {
+            await this.showError(error.message);
+        }
+    },
+
+    async loadHotelSchedules() {
+        const hotelId = document.getElementById('filterHotel').value;
+        let url = '/api/admin/hotel-schedules';
+        if (hotelId) {
+            url += `?hotel_id=${hotelId}`;
+        }
+
+        const res = await fetch(url);
+        const data = await res.json();
+        const tbody = document.getElementById('assignmentsTableBody');
+        tbody.innerHTML = '';
+
+        if (data.success && data.data.length > 0) {
+            data.data.forEach(assignment => {
+                const date = new Date(assignment.date).toLocaleDateString();
+                const status = assignment.staff_name === 'HOTEL_ASSIGNMENT'
+                    ? '<span class="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs">Pending</span>'
+                    : '<span class="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">Claimed</span>';
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap">${assignment.hotel_name}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">${assignment.module_name}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">${date}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">${assignment.session}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">${assignment.start_time} - ${assignment.end_time}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">${status}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        ${assignment.staff_name === 'HOTEL_ASSIGNMENT' ? `
+                            <button onclick="AdminApp.removeHotelSchedule(${assignment.id})" 
+                                class="text-red-600 hover:text-red-900">Remove</button>
+                        ` : `
+                            <span class="text-gray-400">Claimed by ${assignment.staff_name}</span>
+                        `}
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        } else {
+            tbody.innerHTML = '<tr><td colspan="7" class="px-6 py-4 text-center text-gray-500">No assignments found</td></tr>';
+        }
+    },
+
+    async removeHotelSchedule(assignmentId) {
+        const confirmed = await this.showConfirm(
+            'Hapus Assignment?',
+            'Token akan dikembalikan ke hotel.',
+            '<p class="text-sm text-gray-600">Assignment yang sudah di-claim oleh staff tidak dapat dihapus.</p>'
+        );
+
+        if (!confirmed) return;
+
+        try {
+            const res = await fetch(`/api/admin/hotel-schedules/${assignmentId}`, {
+                method: 'DELETE'
+            });
+
+            const data = await res.json();
+
+            if (data.success) {
+                await this.showSuccess('Assignment berhasil dihapus dan token telah dikembalikan!');
+                await this.loadHotelSchedules();
+                await this.loadHotelsForMultiSelect(); // Refresh token counts
+            } else {
+                await this.showError(data.message);
+            }
+        } catch (error) {
+            await this.showError(error.message);
+        }
+    },
+
+    // --- Others Information ---
+    async initOthersInformation() {
+        const form = document.getElementById('addInfoForm');
+        if (form) {
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const type = document.getElementById('infoType').value;
+                const detail = document.getElementById('infoDetail').value;
+                await this.createOthersInfo(type, detail);
+            });
+        }
+
+        const editForm = document.getElementById('editInfoForm');
+        if (editForm) {
+            editForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const id = document.getElementById('editInfoId').value;
+                const type = document.getElementById('editInfoType').value;
+                const detail = document.getElementById('editInfoDetail').value;
+                await this.updateOthersInfo(id, type, detail);
+            });
+        }
+
+        this.loadOthersInformation();
+    },
+
+    async loadOthersInformation() {
+        try {
+            const filterType = document.getElementById('filterType')?.value || '';
+            let url = '/api/admin/others-information';
+            if (filterType) {
+                url += `?type=${filterType}`;
+            }
+
+            const res = await fetch(url);
+            const data = await res.json();
+            const tbody = document.getElementById('infoTableBody');
+            tbody.innerHTML = '';
+
+            if (data.success && data.data.length > 0) {
+                data.data.forEach(info => {
+                    const typeLabels = {
+                        'terms': 'Terms & Conditions',
+                        'warning_generate': 'Warning - Generate',
+                        'warning_registration': 'Warning - Registration',
+                        'info_general': 'General Info'
+                    };
+
+                    const typeColors = {
+                        'terms': 'bg-blue-100 text-blue-800',
+                        'warning_generate': 'bg-red-100 text-red-800',
+                        'warning_registration': 'bg-yellow-100 text-yellow-800',
+                        'info_general': 'bg-green-100 text-green-800'
+                    };
+
+                    const createdDate = new Date(info.created_at).toLocaleDateString('id-ID');
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td class="px-6 py-4 whitespace-nowrap">${info.id}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 py-1 ${typeColors[info.type] || 'bg-gray-100 text-gray-800'} rounded-full text-xs">
+                                ${typeLabels[info.type] || info.type}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="max-w-md truncate">${info.detail}</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${createdDate}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                            <button onclick="AdminApp.editOthersInfo(${info.id}, '${info.type.replace(/'/g, "\\'")}', \`${info.detail.replace(/`/g, '\\`')}\`)" 
+                                class="text-blue-600 hover:text-blue-900">Edit</button>
+                            <button onclick="AdminApp.deleteOthersInfo(${info.id})" 
+                                class="text-red-600 hover:text-red-900">Delete</button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } else {
+                tbody.innerHTML = '<tr><td colspan="5" class="px-6 py-4 text-center text-gray-500">No information found</td></tr>';
+            }
+        } catch (error) {
+            await this.showError('Failed to load information: ' + error.message);
+        }
+    },
+
+    async createOthersInfo(type, detail) {
+        try {
+            const res = await fetch('/api/admin/others-information', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ type, detail })
+            });
+
+            const data = await res.json();
+
+            if (data.success) {
+                await this.showSuccess('Informasi berhasil ditambahkan!');
+                document.getElementById('addInfoForm').reset();
+                await this.loadOthersInformation();
+            } else {
+                await this.showError(data.message);
+            }
+        } catch (error) {
+            await this.showError(error.message);
+        }
+    },
+
+    editOthersInfo(id, type, detail) {
+        document.getElementById('editInfoId').value = id;
+        document.getElementById('editInfoType').value = type;
+        document.getElementById('editInfoDetail').value = detail;
+        document.getElementById('editInfoModal').classList.remove('hidden');
+    },
+
+    closeEditInfoModal() {
+        document.getElementById('editInfoModal').classList.add('hidden');
+    },
+
+    async updateOthersInfo(id, type, detail) {
+        try {
+            const res = await fetch(`/api/admin/others-information/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ type, detail })
+            });
+
+            const data = await res.json();
+
+            if (data.success) {
+                await this.showSuccess('Informasi berhasil diupdate!');
+                this.closeEditInfoModal();
+                await this.loadOthersInformation();
+            } else {
+                await this.showError(data.message);
+            }
+        } catch (error) {
+            await this.showError(error.message);
+        }
+    },
+
+    async deleteOthersInfo(id) {
+        const confirmed = await this.showConfirm(
+            'Hapus Informasi?',
+            'Apakah Anda yakin ingin menghapus informasi ini?',
+            '<p class="text-sm text-gray-600">Tindakan ini tidak dapat dibatalkan.</p>'
+        );
+
+        if (!confirmed) return;
+
+        try {
+            const res = await fetch(`/api/admin/others-information/${id}`, {
+                method: 'DELETE'
+            });
+
+            const data = await res.json();
+
+            if (data.success) {
+                await this.showSuccess('Informasi berhasil dihapus!');
+                await this.loadOthersInformation();
+            } else {
+                await this.showError(data.message);
+            }
+        } catch (error) {
+            await this.showError(error.message);
+        }
     }
 };

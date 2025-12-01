@@ -373,7 +373,23 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
-    // Handle Form Submit
+    // Warning Modal Controls
+    const warningModal = document.getElementById('warningModal');
+    const warningContent = document.getElementById('warningContent');
+    const warningCheckbox = document.getElementById('warningAgreeCheckbox');
+    const warningApproveBtn = document.getElementById('warningApproveBtn');
+
+    window.closeWarningModal = function () {
+        warningModal.classList.add('hidden');
+        warningCheckbox.checked = false;
+        warningApproveBtn.disabled = true;
+    };
+
+    warningCheckbox.addEventListener('change', (e) => {
+        warningApproveBtn.disabled = !e.target.checked;
+    });
+
+    // Handle Form Submit - Show Warning First
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
         errorMessage.classList.add('hidden');
