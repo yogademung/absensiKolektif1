@@ -107,11 +107,11 @@ const AdminApp = {
         }
     },
 
-    async createHotel(name, token_quota) {
+    async createHotel(name, token_quota, gdrive_link) {
         const res = await fetch('/api/admin/hotels', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name, token_quota })
+            body: JSON.stringify({ name, token_quota, gdrive_link })
         });
         if (res.ok) {
             document.getElementById('addHotelForm').reset();
@@ -126,10 +126,11 @@ const AdminApp = {
         }
     },
 
-    editHotel(id, name, tokenQuota) {
+    editHotel(id, name, tokenQuota, gdriveLink) {
         document.getElementById('editHotelId').value = id;
         document.getElementById('editHotelName').value = name;
         document.getElementById('editTokenQuota').value = tokenQuota;
+        document.getElementById('editGdriveLink').value = gdriveLink || '';
         document.getElementById('editHotelModal').classList.remove('hidden');
     },
 
@@ -138,11 +139,11 @@ const AdminApp = {
         document.getElementById('editHotelForm').reset();
     },
 
-    async updateHotel(id, name, token_quota) {
+    async updateHotel(id, name, token_quota, gdrive_link) {
         const res = await fetch(`/api/admin/hotels/${id}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name, token_quota })
+            body: JSON.stringify({ name, token_quota, gdrive_link })
         });
         if (res.ok) {
             this.closeEditHotelModal();
@@ -329,8 +330,7 @@ const AdminApp = {
                     <td class="px-6 py-4 whitespace-nowrap max-w-xs truncate"><a href="${sch.zoom_link}" target="_blank" class="text-blue-600 hover:underline">${sch.zoom_link}</a></td>
                     <td class="px-6 py-4 whitespace-nowrap">${videoStatus}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                        <button onclick="AdminApp.editSchedule(${sch.id}, ${sch.module_id}, '${sch.date}', '${sch.session}', '${sch.start_time}', '${sch.end_time}', '${sch.zoom_link.replace(/'/g, "\\'")}'${sch.video_link ? `, '${sch.video_link.replace(/'/g, "\\'")}` : ', null'})"
-                            class="text-blue-600 hover:text-blue-900">Edit</button>
+                        <button onclick="AdminApp.editSchedule(${sch.id}, ${sch.module_id}, '${sch.date}', '${sch.session}', '${sch.start_time}', '${sch.end_time}', '${sch.zoom_link.replace(/'/g, "\\'")}'${sch.video_link ? `, '${sch.video_link.replace(/'/g, "\\'")}` : ', null'})" class="text-blue-600 hover:text-blue-900">Edit</button>
                         <button onclick="AdminApp.deleteSchedule(${sch.id})" class="text-red-600 hover:text-red-900">Delete</button>
                     </td>
                 `;

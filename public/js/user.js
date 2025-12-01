@@ -207,6 +207,56 @@ function exportScheduleToCSV() {
     document.body.removeChild(link);
 }
 
+// Helper function to format Zoom link display
+function formatZoomLink(zoomText) {
+    if (!zoomText) return '-';
+
+    // Extract URLs from the text using regex (works with any format)
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    const urls = zoomText.match(urlRegex);
+    const mainUrl = (urls && urls.length > 0) ? urls[0] : null;
+
+    return `
+        <div class="flex flex-row gap-3 py-2">
+            ${mainUrl ? `
+                <a href="${mainUrl}" target="_blank" class="flex-1 inline-flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors shadow-sm text-sm">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                    Join
+                </a>
+            ` : ''}
+            
+            <button onclick="copyZoomText(this)" data-zoom-text="${zoomText.replace(/"/g, '&quot;')}" class="flex-1 inline-flex items-center justify-center px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors border border-gray-200 text-sm">
+                <svg class="w-4 h-4 mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+                Copy Info
+            </button>
+        </div>
+    `;
+}
+
+// Function to copy Zoom text to clipboard
+window.copyZoomText = function (button) {
+    const zoomText = button.getAttribute('data-zoom-text');
+    navigator.clipboard.writeText(zoomText).then(() => {
+        const originalText = button.innerHTML;
+        button.innerHTML = `
+            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+            Copied!
+        `;
+        setTimeout(() => {
+            button.innerHTML = originalText;
+        }, 2000);
+    }).catch(err => {
+        console.error('Failed to copy:', err);
+        alert('Failed to copy to clipboard');
+    });
+};
+
 
 async function loadTokenInfo() {
     if (!userHotelId) return;
@@ -257,8 +307,8 @@ async function loadHistory() {
                     <td class="px-6 py-4 whitespace-nowrap text-sm">${voucher.session}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm">${voucher.start_time} - ${voucher.end_time}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm">${voucher.staff_name}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm">
-                        ${voucher.zoom_link ? `<a href="${voucher.zoom_link}" target="_blank" class="text-blue-600 hover:underline">Join Meeting</a>` : '-'}
+                    <td class="px-6 py-4 text-sm">
+                        ${formatZoomLink(voucher.zoom_link)}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm">
                         ${voucher.video_link ? `<a href="${voucher.video_link}" target="_blank" class="text-green-600 hover:underline">Watch Video</a>` : '<span class="text-gray-400">Not Available</span>'}
