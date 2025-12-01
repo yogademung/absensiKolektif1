@@ -63,7 +63,8 @@ const AdminApp = {
                 e.preventDefault();
                 const name = document.getElementById('hotelName').value;
                 const quota = document.getElementById('tokenQuota').value;
-                await this.createHotel(name, quota);
+                const gdriveLink = document.getElementById('gdriveLink').value;
+                await this.createHotel(name, quota, gdriveLink);
             });
         }
 
@@ -74,7 +75,8 @@ const AdminApp = {
                 const id = document.getElementById('editHotelId').value;
                 const name = document.getElementById('editHotelName').value;
                 const quota = document.getElementById('editTokenQuota').value;
-                await this.updateHotel(id, name, parseInt(quota));
+                const gdriveLink = document.getElementById('editGdriveLink').value;
+                await this.updateHotel(id, name, parseInt(quota), gdriveLink);
             });
         }
 
@@ -97,8 +99,11 @@ const AdminApp = {
                     <td class="px-6 py-4 whitespace-nowrap">${hotel.token_quota}</td>
                     <td class="px-6 py-4 whitespace-nowrap">${hotel.token_used}</td>
                     <td class="px-6 py-4 whitespace-nowrap ${remaining <= 0 ? 'text-red-600 font-bold' : 'text-green-600'}">${remaining}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                        ${hotel.gdrive_link ? `<a href="${hotel.gdrive_link}" target="_blank" class="text-blue-600 hover:underline">View Link</a>` : '<span class="text-gray-400">-</span>'}
+                    </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                        <button onclick="AdminApp.editHotel(${hotel.id}, '${hotel.name.replace(/'/g, "\\'")}', ${hotel.token_quota})" class="text-blue-600 hover:text-blue-900">Edit</button>
+                        <button onclick="AdminApp.editHotel(${hotel.id}, '${hotel.name.replace(/'/g, "\\'")}', ${hotel.token_quota}, '${(hotel.gdrive_link || '').replace(/'/g, "\\'")}' )" class="text-blue-600 hover:text-blue-900">Edit</button>
                         <button onclick="AdminApp.deleteHotel(${hotel.id})" class="text-red-600 hover:text-red-900">Delete</button>
                     </td>
                 `;
