@@ -372,10 +372,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 });
         }
     });
-
     // Warning Modal Controls
     const warningModal = document.getElementById('warningModal');
-    const warningContent = document.getElementById('warningContent');
     const warningCheckbox = document.getElementById('warningAgreeCheckbox');
     const warningApproveBtn = document.getElementById('warningApproveBtn');
 
@@ -389,26 +387,42 @@ document.addEventListener('DOMContentLoaded', async () => {
         warningApproveBtn.disabled = !e.target.checked;
     });
 
+    // Store form data temporarily
+    let pendingRegistration = null;
+
     // Handle Form Submit - Show Warning First
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
         errorMessage.classList.add('hidden');
         errorMessage.textContent = '';
 
-        const staffName = document.getElementById('staffName').value;
-        const hotelId = hotelSelect.value;
-        const moduleId = moduleSelect.value;
-        const scheduleId = scheduleSelect.value;
+        // Store form data
+        pendingRegistration = {
+            staffName: document.getElementById('staffName').value,
+            hotelId: hotelSelect.value,
+            moduleId: moduleSelect.value,
+            scheduleId: scheduleSelect.value
+        };
+
+        // Show warning modal
+        warningModal.classList.remove('hidden');
+    });
+
+    // Proceed with registration after approval
+    window.proceedRegistration = async function () {
+        if (!pendingRegistration) return;
+
+        closeWarningModal();
 
         try {
             const res = await fetch('/api/vouchers', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    staff_name: staffName,
-                    hotel_id: hotelId,
-                    module_id: moduleId,
-                    schedule_id: scheduleId
+                    staff_name: pendingRegistration.staffName,
+                    hotel_id: pendingRegistration.hotelId,
+                    module_id: pendingRegistration.moduleId,
+                    schedule_id: pendingRegistration.scheduleId
                 })
             });
 
@@ -416,6 +430,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             if (data.success) {
                 closeRegistrationModal();
+                pendingRegistration = null;
                 // Reload token info and history
                 await loadTokenInfo();
                 await loadHistory();
@@ -429,5 +444,5 @@ document.addEventListener('DOMContentLoaded', async () => {
             errorMessage.textContent = 'An error occurred. Please try again.';
             errorMessage.classList.remove('hidden');
         }
-    });
+    };
 });

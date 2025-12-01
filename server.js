@@ -82,6 +82,14 @@ app.get('/admin/others-info', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'admin-others-info.html'));
 });
 
+app.get('/information', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'information.html'));
+});
+
+// Public endpoint for others information (e.g. warnings, terms)
+const AdminOthersInformationController = require('./src/controllers/adminOthersInformationController');
+app.get('/api/public/others-information', AdminOthersInformationController.getAll);
+
 app.get('/admin/dashboard', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'admin-dashboard.html'));
 });
