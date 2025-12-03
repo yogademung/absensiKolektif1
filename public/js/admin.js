@@ -1154,6 +1154,8 @@ const AdminApp = {
                 data.data.forEach(info => {
                     const typeLabels = {
                         'terms': 'Terms & Conditions',
+                        'generate_token': 'Generate Token Info',
+                        'maximum_expired': 'Maximum Expired Days',
                         'warning_generate': 'Warning - Generate',
                         'warning_registration': 'Warning - Registration',
                         'info_general': 'General Info'
@@ -1161,6 +1163,8 @@ const AdminApp = {
 
                     const typeColors = {
                         'terms': 'bg-blue-100 text-blue-800',
+                        'generate_token': 'bg-purple-100 text-purple-800',
+                        'maximum_expired': 'bg-indigo-100 text-indigo-800',
                         'warning_generate': 'bg-red-100 text-red-800',
                         'warning_registration': 'bg-yellow-100 text-yellow-800',
                         'info_general': 'bg-green-100 text-green-800'
@@ -1168,22 +1172,27 @@ const AdminApp = {
 
                     const createdDate = new Date(info.created_at).toLocaleDateString('id-ID');
                     const tr = document.createElement('tr');
+                    tr.className = 'hover:bg-gray-50 cursor-pointer';
+                    tr.onclick = () => AdminApp.editOthersInfo(info.id, info.type, info.detail);
                     tr.innerHTML = `
-                        <td class="px-6 py-4 whitespace-nowrap">${info.id}</td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <span class="px-2 py-1 ${typeColors[info.type] || 'bg-gray-100 text-gray-800'} rounded-full text-xs">
+                        <td class="px-3 md:px-6 py-4 whitespace-nowrap">${info.id}</td>
+                        <td class="px-3 md:px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 py-1 ${typeColors[info.type] || 'bg-gray-100 text-gray-800'} rounded-full text-xs font-medium">
                                 ${typeLabels[info.type] || info.type}
                             </span>
                         </td>
-                        <td class="px-6 py-4">
-                            <div class="max-w-md truncate">${info.detail}</div>
+                        <td class="px-3 md:px-6 py-4">
+                            <div class="max-w-md truncate text-sm">${info.detail}</div>
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${createdDate}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                            <button onclick="AdminApp.editOthersInfo(${info.id}, '${info.type.replace(/'/g, "\\'")}', \`${info.detail.replace(/`/g, '\\`')}\`)" 
-                                class="text-blue-600 hover:text-blue-900">Edit</button>
-                            <button onclick="AdminApp.deleteOthersInfo(${info.id})" 
-                                class="text-red-600 hover:text-red-900">Delete</button>
+                        <td class="px-3 md:px-6 py-4 whitespace-nowrap text-sm text-gray-500">${createdDate}</td>
+                        <td class="px-3 md:px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <button onclick="event.stopPropagation(); AdminApp.editOthersInfo(${info.id}, '${info.type.replace(/'/g, "\\'")}', \`${info.detail.replace(/`/g, '\\`')}\`)" 
+                                class="text-blue-600 hover:text-blue-900">
+                                <svg class="w-5 h-5 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                </svg>
+                                Edit
+                            </button>
                         </td>
                     `;
                     tbody.appendChild(tr);
@@ -1276,5 +1285,175 @@ const AdminApp = {
         } catch (error) {
             await this.showError(error.message);
         }
+    },
+
+    // --- Print Hotel Schedules ---
+    printHotelSchedules() {
+        const tbody = document.getElementById('assignmentsTableBody');
+        const table = document.querySelector('.min-w-full');
+
+        if (!tbody || tbody.rows.length === 0) {
+            this.showWarning('Tidak ada data jadwal untuk dicetak');
+            return;
+        }
+
+        // Get filter value to determine hotel name
+        const filterHotel = document.getElementById('filterHotel');
+        const selectedHotelId = filterHotel.value;
+        let hotelName = 'All Hotels';
+
+        if (selectedHotelId) {
+            const selectedOption = filterHotel.options[filterHotel.selectedIndex];
+            hotelName = selectedOption.text;
+        }
+
+        // Create a new window for printing
+        const printWindow = window.open('', '_blank');
+
+        // Process table rows
+        let tableRows = '';
+        Array.from(tbody.rows).forEach(row => {
+            if (row.cells.length > 1) { // Skip "no data" rows
+                let rowHtml = '<tr>';
+                Array.from(row.cells).forEach((cell, index) => {
+                    // Skip the Actions column (last column)
+                    if (index < row.cells.length - 1) {
+                        rowHtml += `<td>${cell.textContent.trim()}</td>`;
+                    }
+                });
+                rowHtml += '</tr>';
+                tableRows += rowHtml;
+            }
+        });
+
+        // Build the print content with signature section
+        const printContent = `
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Hotel Schedules - Print</title>
+                <style>
+                    body {
+                        font-family: Arial, sans-serif;
+                        margin: 20px;
+                    }
+                    h1 {
+                        text-align: center;
+                        color: #1f2937;
+                        margin-bottom: 10px;
+                    }
+                    .hotel-info {
+                        text-align: center;
+                        color: #2563eb;
+                        font-weight: 600;
+                        margin-bottom: 20px;
+                        font-size: 16px;
+                    }
+                    table {
+                        width: 100%;
+                        border-collapse: collapse;
+                        margin-top: 20px;
+                    }
+                    th {
+                        background-color: #f9fafb;
+                        border: 1px solid #e5e7eb;
+                        padding: 12px 8px;
+                        text-align: left;
+                        font-size: 11px;
+                        font-weight: 600;
+                        color: #6b7280;
+                        text-transform: uppercase;
+                    }
+                    td {
+                        border: 1px solid #e5e7eb;
+                        padding: 10px 8px;
+                        font-size: 13px;
+                        color: #1f2937;
+                    }
+                    tr:nth-child(even) {
+                        background-color: #f9fafb;
+                    }
+                    .print-date {
+                        text-align: right;
+                        color: #6b7280;
+                        font-size: 12px;
+                        margin-top: 20px;
+                    }
+                    .signature-section {
+                        margin-top: 60px;
+                        display: flex;
+                        justify-content: space-between;
+                        padding: 0 40px;
+                    }
+                    .signature-box {
+                        text-align: center;
+                        width: 200px;
+                    }
+                    .signature-line {
+                        margin-top: 80px;
+                        border-top: 1px solid #000;
+                        padding-top: 5px;
+                        font-weight: 600;
+                    }
+                    .signature-title {
+                        font-weight: 600;
+                        margin-bottom: 10px;
+                    }
+                    @media print {
+                        body { margin: 10px; }
+                    }
+                </style>
+            </head>
+            <body>
+                <h1>Hotel Schedule Assignments</h1>
+                <div class="hotel-info">
+                    ${hotelName}
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Hotel</th>
+                            <th>Module</th>
+                            <th>Date</th>
+                            <th>Session</th>
+                            <th>Time</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${tableRows}
+                    </tbody>
+                </table>
+                <div class="print-date">
+                    Printed on: ${new Date().toLocaleString()}
+                </div>
+                <div class="signature-section">
+                    <div class="signature-box">
+                        <div class="signature-title">PT. Supranusa Sindata</div>
+                        <div class="signature-line">
+                            (________________)
+                        </div>
+                    </div>
+                    <div class="signature-box">
+                        <div class="signature-title">Hotel</div>
+                        <div class="signature-line">
+                            (________________)
+                        </div>
+                    </div>
+                </div>
+                <script>
+                    window.onload = function() {
+                        window.print();
+                        window.onafterprint = function() {
+                            window.close();
+                        };
+                    };
+                </script>
+            </body>
+            </html>
+        `;
+
+        printWindow.document.write(printContent);
+        printWindow.document.close();
     }
 };

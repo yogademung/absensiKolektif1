@@ -19,7 +19,7 @@
         </div>
     </nav>
 
-    <div class="container mx-auto p-8">
+    <div class="container mx-auto p-4 md:p-8">
         <!-- Back Button -->
         <div class="mb-6">
             <a href="/admin/dashboard"
@@ -32,42 +32,16 @@
             </a>
         </div>
 
-        <!-- Add Information Form -->
-        <div class="bg-white p-6 rounded-lg shadow mb-8">
-            <h2 class="text-lg font-bold mb-4">Add New Information</h2>
-            <form id="addInfoForm" class="space-y-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Type</label>
-                    <select id="infoType" required class="w-full rounded-md border border-gray-300 p-2">
-                        <option value="">Select Type</option>
-                        <option value="terms">Terms & Conditions</option>
-                        <option value="warning_generate">Warning - Generate Voucher</option>
-                        <option value="warning_registration">Warning - Registration</option>
-                        <option value="info_general">General Information</option>
-                    </select>
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Detail</label>
-                    <textarea id="infoDetail" required rows="4" class="w-full rounded-md border border-gray-300 p-2"
-                        placeholder="Enter detailed information..."></textarea>
-                </div>
-
-                <button type="submit" class="w-full bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700">
-                    Add Information
-                </button>
-            </form>
-        </div>
-
         <!-- Filter -->
         <div class="bg-white p-4 rounded-lg shadow mb-4">
-            <div class="flex gap-4 items-center">
+            <div class="flex gap-4 items-center flex-wrap">
                 <label class="text-sm font-medium text-gray-700">Filter by Type:</label>
-                <select id="filterType" class="border p-2 rounded" onchange="AdminApp.loadOthersInformation()">
+                <select id="filterType" class="border p-2 rounded w-full md:w-auto"
+                    onchange="AdminApp.loadOthersInformation()">
                     <option value="">All Types</option>
                     <option value="terms">Terms & Conditions</option>
-                    <option value="warning_generate">Warning - Generate</option>
-                    <option value="warning_registration">Warning - Registration</option>
+                    <option value="generate_token">Generate Token Info</option>
+                    <option value="maximum_expired">Maximum Expired Days</option>
                     <option value="info_general">General Information</option>
                 </select>
             </div>
@@ -76,21 +50,28 @@
         <!-- Information List -->
         <div class="bg-white rounded-lg shadow overflow-hidden">
             <div class="p-4 border-b">
-                <h2 class="text-lg font-bold">Information List</h2>
+                <h2 class="text-lg font-bold">System Information</h2>
+                <p class="text-sm text-gray-600 mt-1">Edit system information and settings. Click on any row to edit.
+                </p>
             </div>
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">
                         <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th
+                                class="px-3 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
                                 ID</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th
+                                class="px-3 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
                                 Type</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th
+                                class="px-3 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Detail</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th
+                                class="px-3 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
                                 Created</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th
+                                class="px-3 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">
                                 Actions</th>
                         </tr>
                     </thead>
@@ -119,18 +100,19 @@
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Type</label>
-                    <select id="editInfoType" required class="w-full rounded-md border border-gray-300 p-2">
-                        <option value="terms">Terms & Conditions</option>
-                        <option value="warning_generate">Warning - Generate Voucher</option>
-                        <option value="warning_registration">Warning - Registration</option>
-                        <option value="info_general">General Information</option>
-                    </select>
+                    <input type="text" id="editInfoType" readonly
+                        class="w-full rounded-md border border-gray-300 p-2 bg-gray-100 cursor-not-allowed">
+                    <p class="text-xs text-gray-500 mt-1">Type cannot be changed</p>
                 </div>
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Detail</label>
-                    <textarea id="editInfoDetail" required rows="4"
-                        class="w-full rounded-md border border-gray-300 p-2"></textarea>
+                    <textarea id="editInfoDetail" required rows="6"
+                        class="w-full rounded-md border border-gray-300 p-2 font-mono text-sm"
+                        placeholder="Enter detailed information..."></textarea>
+                    <p class="text-xs text-gray-500 mt-1">
+                        For 'maximum_expired', enter number of days (e.g., 90)
+                    </p>
                 </div>
 
                 <div class="flex gap-2">
@@ -144,6 +126,27 @@
                     </button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- Custom Alert Modal -->
+    <div id="customAlert" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div class="mt-3 text-center">
+                <div id="alertIcon" class="mx-auto flex items-center justify-center h-12 w-12 rounded-full mb-4">
+                    <!-- Icon will be inserted here -->
+                </div>
+                <h3 id="alertTitle" class="text-lg leading-6 font-medium text-gray-900"></h3>
+                <div class="mt-2 px-7 py-3">
+                    <p id="alertMessage" class="text-sm text-gray-500"></p>
+                </div>
+                <div class="items-center px-4 py-3">
+                    <button id="alertOkBtn"
+                        class="px-4 py-2 bg-purple-600 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500">
+                        OK
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 
