@@ -1,11 +1,22 @@
 const AdminApp = {
     // --- Authentication ---
     async login(email, password) {
+        // Deprecated: Use loginWithCaptcha instead
+        await this.loginWithCaptcha(email, password, null, null);
+    },
+
+    async loginWithCaptcha(email, password, captchaId, captchaInput) {
         try {
+            const body = { email, password };
+            if (captchaId && captchaInput) {
+                body.captchaId = captchaId;
+                body.captchaInput = captchaInput;
+            }
+
             const res = await fetch('/api/admin/auth/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, password })
+                body: JSON.stringify(body)
             });
             const data = await res.json();
             if (data.success) {
@@ -25,6 +36,11 @@ const AdminApp = {
                 if (errorAlert && errorMessage) {
                     errorMessage.textContent = data.message || 'Email atau password salah';
                     errorAlert.classList.remove('hidden');
+                }
+
+                // Refresh CAPTCHA on failure if function exists
+                if (typeof refreshCaptcha === 'function') {
+                    refreshCaptcha();
                 }
             }
         } catch (err) {
@@ -64,7 +80,8 @@ const AdminApp = {
                 const name = document.getElementById('hotelName').value;
                 const quota = document.getElementById('tokenQuota').value;
                 const gdriveLink = document.getElementById('gdriveLink').value;
-                await this.createHotel(name, quota, gdriveLink);
+                const overhandleFormLink = document.getElementById('overhandleFormLink').value;
+                await this.createHotel(name, quota, gdriveLink, overhandleFormLink);
             });
         }
 
@@ -76,7 +93,8 @@ const AdminApp = {
                 const name = document.getElementById('editHotelName').value;
                 const quota = document.getElementById('editTokenQuota').value;
                 const gdriveLink = document.getElementById('editGdriveLink').value;
-                await this.updateHotel(id, name, parseInt(quota), gdriveLink);
+                const overhandleFormLink = document.getElementById('editOverhandleFormLink').value;
+                await this.updateHotel(id, name, parseInt(quota), gdriveLink, overhandleFormLink);
             });
         }
 
@@ -102,9 +120,12 @@ const AdminApp = {
                     <td class="px-6 py-4 whitespace-nowrap text-sm">
                         ${hotel.gdrive_link ? `<a href="${hotel.gdrive_link}" target="_blank" class="text-blue-600 hover:underline">View Link</a>` : '<span class="text-gray-400">-</span>'}
                     </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                        ${hotel.overhandle_form_link ? `<a href="${hotel.overhandle_form_link}" target="_blank" class="text-blue-600 hover:underline">View Form</a>` : '<span class="text-gray-400">-</span>'}
+                    </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                        <button onclick="AdminApp.editHotel(${hotel.id}, '${hotel.name.replace(/'/g, "\\'")}', ${hotel.token_quota}, '${(hotel.gdrive_link || '').replace(/'/g, "\\'")}' )" class="text-blue-600 hover:text-blue-900">Edit</button>
-                        <button onclick="AdminApp.deleteHotel(${hotel.id})" class="text-red-600 hover:text-red-900">Delete</button>
+                        <button onclick="AdminApp.editHotel(${hotel.id}, '${hotel.name.replace(/'/g, "\\'")}', ${hotel.token_quota}, '${(hotel.gdrive_link || '').replace(/'/g, "\\'")}', '${(hotel.overhandle_form_link || '').replace(/'/g, "\\'")}' )" class="text-blue-600 hover:text-blue-900">Edit</button>
+                        <button onclick="AdminApp.deleteHotel(${hotel.id})\" class="text-red-600 hover:text-red-900">Delete</button>
                     </td>
                 `;
                 tbody.appendChild(tr);
@@ -112,11 +133,11 @@ const AdminApp = {
         }
     },
 
-    async createHotel(name, token_quota, gdrive_link) {
+    async createHotel(name, token_quota, gdrive_link, overhandle_form_link) {
         const res = await fetch('/api/admin/hotels', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name, token_quota, gdrive_link })
+            body: JSON.stringify({ name, token_quota, gdrive_link, overhandle_form_link })
         });
         if (res.ok) {
             document.getElementById('addHotelForm').reset();
@@ -131,11 +152,12 @@ const AdminApp = {
         }
     },
 
-    editHotel(id, name, tokenQuota, gdriveLink) {
+    editHotel(id, name, tokenQuota, gdriveLink, overhandleFormLink) {
         document.getElementById('editHotelId').value = id;
         document.getElementById('editHotelName').value = name;
         document.getElementById('editTokenQuota').value = tokenQuota;
         document.getElementById('editGdriveLink').value = gdriveLink || '';
+        document.getElementById('editOverhandleFormLink').value = overhandleFormLink || '';
         document.getElementById('editHotelModal').classList.remove('hidden');
     },
 
@@ -144,11 +166,11 @@ const AdminApp = {
         document.getElementById('editHotelForm').reset();
     },
 
-    async updateHotel(id, name, token_quota, gdrive_link) {
+    async updateHotel(id, name, token_quota, gdrive_link, overhandle_form_link) {
         const res = await fetch(`/api/admin/hotels/${id}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name, token_quota, gdrive_link })
+            body: JSON.stringify({ name, token_quota, gdrive_link, overhandle_form_link })
         });
         if (res.ok) {
             this.closeEditHotelModal();

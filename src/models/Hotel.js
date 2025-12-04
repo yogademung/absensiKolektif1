@@ -11,16 +11,16 @@ class Hotel {
         return rows[0];
     }
 
-    static async create(name, tokenQuota, gdriveLink = null) {
-        const [result] = await db.execute('INSERT INTO hotels (name, token_quota, gdrive_link) VALUES (?, ?, ?)', [name, tokenQuota, gdriveLink]);
+    static async create(name, tokenQuota, gdriveLink = null, overhandleFormLink = null) {
+        const [result] = await db.execute('INSERT INTO hotels (name, token_quota, gdrive_link, overhandle_form_link) VALUES (?, ?, ?, ?)', [name, tokenQuota, gdriveLink, overhandleFormLink]);
         return result.insertId;
     }
 
     static async update(id, data) {
-        const { name, token_quota, gdrive_link } = data;
+        const { name, token_quota, gdrive_link, overhandle_form_link } = data;
         await db.execute(
-            'UPDATE hotels SET name = ?, token_quota = ?, gdrive_link = ? WHERE id = ?',
-            [name, token_quota, gdrive_link, id]
+            'UPDATE hotels SET name = ?, token_quota = ?, gdrive_link = ?, overhandle_form_link = ? WHERE id = ?',
+            [name, token_quota, gdrive_link, overhandle_form_link, id]
         );
     }
 

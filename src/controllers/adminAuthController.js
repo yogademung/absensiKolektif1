@@ -1,12 +1,25 @@
 const AdminAuthService = require('../services/adminAuthService');
+const CaptchaService = require('../services/captchaService');
 const response = require('../utils/response');
 
 class AdminAuthController {
     static async login(req, res) {
         try {
-            const { email, password } = req.body;
+            const { email, password, captchaId, captchaInput } = req.body;
+
+            // Validate required fields
             if (!email || !password) {
                 return response(res, 400, false, 'Email and password are required');
+            }
+
+            // Validate CAPTCHA
+            if (!captchaId || !captchaInput) {
+                return response(res, 400, false, 'CAPTCHA is required');
+            }
+
+            const isCaptchaValid = CaptchaService.validate(captchaId, captchaInput);
+            if (!isCaptchaValid) {
+                return response(res, 400, false, 'Invalid or expired CAPTCHA');
             }
 
             const clientInfo = {
