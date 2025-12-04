@@ -1,5 +1,6 @@
 let userHotelId = null;
 let userHotelName = '';
+let allVouchersData = []; // Store all voucher data for filtering
 
 // Modal controls
 function openRegistrationModal() {
@@ -258,6 +259,93 @@ window.copyZoomText = function (button) {
 };
 
 
+
+// Filter history by status
+window.filterHistory = function (status) {
+    const tbody = document.getElementById('historyTableBody');
+    tbody.innerHTML = '';
+
+    // Update button styles
+    const allBtn = document.getElementById('filterAll');
+    const upcomingBtn = document.getElementById('filterUpcoming');
+    const completedBtn = document.getElementById('filterCompleted');
+
+    // Reset all buttons to inactive state
+    const inactiveClass = 'bg-gray-200 text-gray-700 hover:bg-gray-300';
+    const activeClass = 'bg-blue-600 text-white';
+
+    allBtn.className = `px-4 py-2 rounded-lg font-medium text-sm transition-colors ${inactiveClass}`;
+    upcomingBtn.className = `px-4 py-2 rounded-lg font-medium text-sm transition-colors ${inactiveClass}`;
+    completedBtn.className = `px-4 py-2 rounded-lg font-medium text-sm transition-colors ${inactiveClass}`;
+
+    // Set active button
+    if (status === 'all') {
+        allBtn.className = `px-4 py-2 rounded-lg font-medium text-sm transition-colors ${activeClass}`;
+    } else if (status === 'upcoming') {
+        upcomingBtn.className = `px-4 py-2 rounded-lg font-medium text-sm transition-colors ${activeClass}`;
+    } else if (status === 'completed') {
+        completedBtn.className = `px-4 py-2 rounded-lg font-medium text-sm transition-colors ${activeClass}`;
+    }
+
+    // Filter data
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    let filteredData = allVouchersData;
+    if (status === 'upcoming') {
+        filteredData = allVouchersData.filter(voucher => {
+            const scheduleDate = new Date(voucher.date);
+            scheduleDate.setHours(0, 0, 0, 0);
+            return scheduleDate >= today;
+        });
+    } else if (status === 'completed') {
+        filteredData = allVouchersData.filter(voucher => {
+            const scheduleDate = new Date(voucher.date);
+            scheduleDate.setHours(0, 0, 0, 0);
+            return scheduleDate < today;
+        });
+    }
+
+    // Render filtered data
+    if (filteredData.length > 0) {
+        filteredData.forEach(voucher => {
+            const scheduleDate = new Date(voucher.date);
+            scheduleDate.setHours(0, 0, 0, 0);
+
+            const isPast = scheduleDate < today;
+            const statusClass = isPast ? 'bg-gray-100 text-gray-600' : 'bg-green-100 text-green-800';
+            const statusText = isPast ? 'Completed' : 'Upcoming';
+
+            const tr = document.createElement('tr');
+            tr.className = isPast ? 'bg-gray-50' : '';
+            tr.innerHTML = `
+                <td class="px-6 py-4 whitespace-nowrap text-sm">${new Date(voucher.date).toLocaleDateString()}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">${voucher.module_name}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm">${voucher.session}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm">${voucher.start_time} - ${voucher.end_time}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm">${voucher.staff_name}</td>
+                <td class="px-6 py-4 text-sm">
+                    ${formatZoomLink(voucher.zoom_link)}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm">
+                    ${voucher.video_link ? `<a href="${voucher.video_link}" target="_blank" class="text-green-600 hover:underline">Watch Video</a>` : '<span class="text-gray-400">Not Available</span>'}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <span class="px-2 py-1 text-xs font-semibold rounded-full ${statusClass}">
+                        ${statusText}
+                    </span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm ${voucher.token_cost > 0 ? 'text-red-600 font-semibold' : 'text-gray-500'}">
+                    ${voucher.token_cost > 0 ? '-' + voucher.token_cost : '0'}
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    } else {
+        tbody.innerHTML = '<tr><td colspan="9" class="px-6 py-4 text-center text-gray-500">No schedule history found</td></tr>';
+    }
+};
+
 async function loadTokenInfo() {
     if (!userHotelId) return;
 
@@ -284,47 +372,15 @@ async function loadHistory() {
     try {
         const res = await fetch(`/api/vouchers/history/${userHotelId}`);
         const data = await res.json();
-        const tbody = document.getElementById('historyTableBody');
-        tbody.innerHTML = '';
 
         if (data.success && data.data.length > 0) {
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-
-            data.data.forEach(voucher => {
-                const scheduleDate = new Date(voucher.date);
-                scheduleDate.setHours(0, 0, 0, 0);
-
-                const isPast = scheduleDate < today;
-                const statusClass = isPast ? 'bg-gray-100 text-gray-600' : 'bg-green-100 text-green-800';
-                const statusText = isPast ? 'Completed' : 'Upcoming';
-
-                const tr = document.createElement('tr');
-                tr.className = isPast ? 'bg-gray-50' : '';
-                tr.innerHTML = `
-                    <td class="px-6 py-4 whitespace-nowrap text-sm">${new Date(voucher.date).toLocaleDateString()}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">${voucher.module_name}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm">${voucher.session}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm">${voucher.start_time} - ${voucher.end_time}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm">${voucher.staff_name}</td>
-                    <td class="px-6 py-4 text-sm">
-                        ${formatZoomLink(voucher.zoom_link)}
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm">
-                        ${voucher.video_link ? `<a href="${voucher.video_link}" target="_blank" class="text-green-600 hover:underline">Watch Video</a>` : '<span class="text-gray-400">Not Available</span>'}
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                        <span class="px-2 py-1 text-xs font-semibold rounded-full ${statusClass}">
-                            ${statusText}
-                        </span>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm ${voucher.token_cost > 0 ? 'text-red-600 font-semibold' : 'text-gray-500'}">
-                        ${voucher.token_cost > 0 ? '-' + voucher.token_cost : '0'}
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
+            // Store all data globally for filtering
+            allVouchersData = data.data;
+            // Render all data by default
+            filterHistory('all');
         } else {
+            allVouchersData = [];
+            const tbody = document.getElementById('historyTableBody');
             tbody.innerHTML = '<tr><td colspan="9" class="px-6 py-4 text-center text-gray-500">No schedule history found</td></tr>';
         }
     } catch (err) {

@@ -122,6 +122,10 @@ app.get('/admin/audit-logs', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'admin-audit-logs.html'));
 });
 
+app.get('/admin/token-report', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'admin-token-report.html'));
+});
+
 // Start server
 app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
