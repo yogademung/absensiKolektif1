@@ -1,5 +1,6 @@
 let userHotelId = null;
 let userHotelName = '';
+let allVouchersData = []; // Store all voucher data for filtering
 
 // Modal controls
 function openRegistrationModal() {
@@ -207,6 +208,143 @@ function exportScheduleToCSV() {
     document.body.removeChild(link);
 }
 
+// Helper function to format Zoom link display
+function formatZoomLink(zoomText) {
+    if (!zoomText) return '-';
+
+    // Extract URLs from the text using regex (works with any format)
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    const urls = zoomText.match(urlRegex);
+    const mainUrl = (urls && urls.length > 0) ? urls[0] : null;
+
+    return `
+        <div class="flex flex-row gap-3 py-2">
+            ${mainUrl ? `
+                <a href="${mainUrl}" target="_blank" class="flex-1 inline-flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors shadow-sm text-sm">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                    Join
+                </a>
+            ` : ''}
+            
+            <button onclick="copyZoomText(this)" data-zoom-text="${zoomText.replace(/"/g, '&quot;')}" class="flex-1 inline-flex items-center justify-center px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors border border-gray-200 text-sm">
+                <svg class="w-4 h-4 mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+                Copy Info
+            </button>
+        </div>
+    `;
+}
+
+// Function to copy Zoom text to clipboard
+window.copyZoomText = function (button) {
+    const zoomText = button.getAttribute('data-zoom-text');
+    navigator.clipboard.writeText(zoomText).then(() => {
+        const originalText = button.innerHTML;
+        button.innerHTML = `
+            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+            Copied!
+        `;
+        setTimeout(() => {
+            button.innerHTML = originalText;
+        }, 2000);
+    }).catch(err => {
+        console.error('Failed to copy:', err);
+        alert('Failed to copy to clipboard');
+    });
+};
+
+
+
+// Filter history by status
+window.filterHistory = function (status) {
+    const tbody = document.getElementById('historyTableBody');
+    tbody.innerHTML = '';
+
+    // Update button styles
+    const allBtn = document.getElementById('filterAll');
+    const upcomingBtn = document.getElementById('filterUpcoming');
+    const completedBtn = document.getElementById('filterCompleted');
+
+    // Reset all buttons to inactive state
+    const inactiveClass = 'bg-gray-200 text-gray-700 hover:bg-gray-300';
+    const activeClass = 'bg-blue-600 text-white';
+
+    allBtn.className = `px-4 py-2 rounded-lg font-medium text-sm transition-colors ${inactiveClass}`;
+    upcomingBtn.className = `px-4 py-2 rounded-lg font-medium text-sm transition-colors ${inactiveClass}`;
+    completedBtn.className = `px-4 py-2 rounded-lg font-medium text-sm transition-colors ${inactiveClass}`;
+
+    // Set active button
+    if (status === 'all') {
+        allBtn.className = `px-4 py-2 rounded-lg font-medium text-sm transition-colors ${activeClass}`;
+    } else if (status === 'upcoming') {
+        upcomingBtn.className = `px-4 py-2 rounded-lg font-medium text-sm transition-colors ${activeClass}`;
+    } else if (status === 'completed') {
+        completedBtn.className = `px-4 py-2 rounded-lg font-medium text-sm transition-colors ${activeClass}`;
+    }
+
+    // Filter data
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    let filteredData = allVouchersData;
+    if (status === 'upcoming') {
+        filteredData = allVouchersData.filter(voucher => {
+            const scheduleDate = new Date(voucher.date);
+            scheduleDate.setHours(0, 0, 0, 0);
+            return scheduleDate >= today;
+        });
+    } else if (status === 'completed') {
+        filteredData = allVouchersData.filter(voucher => {
+            const scheduleDate = new Date(voucher.date);
+            scheduleDate.setHours(0, 0, 0, 0);
+            return scheduleDate < today;
+        });
+    }
+
+    // Render filtered data
+    if (filteredData.length > 0) {
+        filteredData.forEach(voucher => {
+            const scheduleDate = new Date(voucher.date);
+            scheduleDate.setHours(0, 0, 0, 0);
+
+            const isPast = scheduleDate < today;
+            const statusClass = isPast ? 'bg-gray-100 text-gray-600' : 'bg-green-100 text-green-800';
+            const statusText = isPast ? 'Completed' : 'Upcoming';
+
+            const tr = document.createElement('tr');
+            tr.className = isPast ? 'bg-gray-50' : '';
+            tr.innerHTML = `
+                <td class="px-6 py-4 whitespace-nowrap text-sm">${new Date(voucher.date).toLocaleDateString()}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">${voucher.module_name}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm">${voucher.session}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm">${voucher.start_time} - ${voucher.end_time}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm">${voucher.staff_name}</td>
+                <td class="px-6 py-4 text-sm">
+                    ${formatZoomLink(voucher.zoom_link)}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm">
+                    ${voucher.video_link ? `<a href="${voucher.video_link}" target="_blank" class="text-green-600 hover:underline">Watch Video</a>` : '<span class="text-gray-400">Not Available</span>'}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                    <span class="px-2 py-1 text-xs font-semibold rounded-full ${statusClass}">
+                        ${statusText}
+                    </span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm ${voucher.token_cost > 0 ? 'text-red-600 font-semibold' : 'text-gray-500'}">
+                    ${voucher.token_cost > 0 ? '-' + voucher.token_cost : '0'}
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    } else {
+        tbody.innerHTML = '<tr><td colspan="9" class="px-6 py-4 text-center text-gray-500">No schedule history found</td></tr>';
+    }
+};
 
 async function loadTokenInfo() {
     if (!userHotelId) return;
@@ -234,51 +372,55 @@ async function loadHistory() {
     try {
         const res = await fetch(`/api/vouchers/history/${userHotelId}`);
         const data = await res.json();
-        const tbody = document.getElementById('historyTableBody');
-        tbody.innerHTML = '';
 
         if (data.success && data.data.length > 0) {
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-
-            data.data.forEach(voucher => {
-                const scheduleDate = new Date(voucher.date);
-                scheduleDate.setHours(0, 0, 0, 0);
-
-                const isPast = scheduleDate < today;
-                const statusClass = isPast ? 'bg-gray-100 text-gray-600' : 'bg-green-100 text-green-800';
-                const statusText = isPast ? 'Completed' : 'Upcoming';
-
-                const tr = document.createElement('tr');
-                tr.className = isPast ? 'bg-gray-50' : '';
-                tr.innerHTML = `
-                    <td class="px-6 py-4 whitespace-nowrap text-sm">${new Date(voucher.date).toLocaleDateString()}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">${voucher.module_name}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm">${voucher.session}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm">${voucher.start_time} - ${voucher.end_time}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm">${voucher.staff_name}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm">
-                        ${voucher.zoom_link ? `<a href="${voucher.zoom_link}" target="_blank" class="text-blue-600 hover:underline">Join Meeting</a>` : '-'}
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm">
-                        ${voucher.video_link ? `<a href="${voucher.video_link}" target="_blank" class="text-green-600 hover:underline">Watch Video</a>` : '<span class="text-gray-400">Not Available</span>'}
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                        <span class="px-2 py-1 text-xs font-semibold rounded-full ${statusClass}">
-                            ${statusText}
-                        </span>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm ${voucher.token_cost > 0 ? 'text-red-600 font-semibold' : 'text-gray-500'}">
-                        ${voucher.token_cost > 0 ? '-' + voucher.token_cost : '0'}
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
+            // Store all data globally for filtering
+            allVouchersData = data.data;
+            // Render all data by default
+            filterHistory('all');
         } else {
+            allVouchersData = [];
+            const tbody = document.getElementById('historyTableBody');
             tbody.innerHTML = '<tr><td colspan="9" class="px-6 py-4 text-center text-gray-500">No schedule history found</td></tr>';
         }
     } catch (err) {
         console.error('Failed to load history:', err);
+    }
+}
+
+async function loadTokenExpiration() {
+    try {
+        // 1. Fetch maximum_expired value from others_information
+        const infoRes = await fetch('/api/public/others-information?type=maximum_expired');
+        const infoData = await infoRes.json();
+        let maxExpiredDays = 90; // Default value
+
+        if (infoData.success && infoData.data.length > 0) {
+            maxExpiredDays = parseInt(infoData.data[0].detail) || 90;
+        }
+
+        // 2. Fetch all schedules to find the first one
+        const schedRes = await fetch('/api/public/schedules');
+        const schedData = await schedRes.json();
+
+        if (schedData.success && schedData.data.length > 0) {
+            // Sort schedules by date ascending to find the earliest
+            const sortedSchedules = schedData.data.sort((a, b) => new Date(a.date) - new Date(b.date));
+            const firstScheduleDate = new Date(sortedSchedules[0].date);
+
+            // 3. Calculate Expiration Date = First Schedule Date + maximum_expired days
+            const expirationDate = new Date(firstScheduleDate);
+            expirationDate.setDate(expirationDate.getDate() + maxExpiredDays);
+
+            // 4. Display in Indonesian format
+            const options = { year: 'numeric', month: 'long', day: 'numeric' };
+            document.getElementById('tokenExpiration').textContent = expirationDate.toLocaleDateString('id-ID', options);
+        } else {
+            document.getElementById('tokenExpiration').textContent = '-';
+        }
+    } catch (err) {
+        console.error('Failed to load token expiration:', err);
+        document.getElementById('tokenExpiration').textContent = '-';
     }
 }
 
@@ -305,6 +447,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Load token info and history
     await loadTokenInfo();
     await loadHistory();
+    await loadTokenExpiration();
 
     // Fetch Hotels
     fetch('/api/public/hotels')
@@ -372,27 +515,57 @@ document.addEventListener('DOMContentLoaded', async () => {
                 });
         }
     });
+    // Warning Modal Controls
+    const warningModal = document.getElementById('warningModal');
+    const warningCheckbox = document.getElementById('warningAgreeCheckbox');
+    const warningApproveBtn = document.getElementById('warningApproveBtn');
 
-    // Handle Form Submit
+    window.closeWarningModal = function () {
+        warningModal.classList.add('hidden');
+        warningCheckbox.checked = false;
+        warningApproveBtn.disabled = true;
+    };
+
+    warningCheckbox.addEventListener('change', (e) => {
+        warningApproveBtn.disabled = !e.target.checked;
+    });
+
+    // Store form data temporarily
+    let pendingRegistration = null;
+
+    // Handle Form Submit - Show Warning First
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
         errorMessage.classList.add('hidden');
         errorMessage.textContent = '';
 
-        const staffName = document.getElementById('staffName').value;
-        const hotelId = hotelSelect.value;
-        const moduleId = moduleSelect.value;
-        const scheduleId = scheduleSelect.value;
+        // Store form data
+        pendingRegistration = {
+            staffName: document.getElementById('staffName').value,
+            hotelId: hotelSelect.value,
+            moduleId: moduleSelect.value,
+            scheduleId: scheduleSelect.value
+        };
+
+        // Show warning modal
+        warningModal.classList.remove('hidden');
+    });
+
+    // Proceed with registration after approval
+    window.proceedRegistration = async function () {
+        if (!pendingRegistration) return;
+
+        closeWarningModal();
 
         try {
             const res = await fetch('/api/vouchers', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    staff_name: staffName,
-                    hotel_id: hotelId,
-                    module_id: moduleId,
-                    schedule_id: scheduleId
+                    staff_name: pendingRegistration.staffName,
+                    hotel_id: pendingRegistration.hotelId,
+                    module_id: pendingRegistration.moduleId,
+                    schedule_id: pendingRegistration.scheduleId
                 })
             });
 
@@ -400,6 +573,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             if (data.success) {
                 closeRegistrationModal();
+                pendingRegistration = null;
                 // Reload token info and history
                 await loadTokenInfo();
                 await loadHistory();
@@ -413,5 +587,5 @@ document.addEventListener('DOMContentLoaded', async () => {
             errorMessage.textContent = 'An error occurred. Please try again.';
             errorMessage.classList.remove('hidden');
         }
-    });
+    };
 });

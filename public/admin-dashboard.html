@@ -19,7 +19,7 @@
     <div class="container mx-auto p-8">
         <!-- Management Cards -->
         <h2 class="text-2xl font-bold mb-4 text-gray-800">Management</h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
             <a href="/admin/hotels" class="block p-6 bg-white rounded-lg shadow hover:shadow-md transition">
                 <h2 class="text-xl font-bold mb-2 text-blue-600">Manage Hotels</h2>
                 <p class="text-gray-600">View and update hotel token quotas.</p>
@@ -35,9 +35,19 @@
                 <p class="text-gray-600">Set up training sessions and Zoom links.</p>
             </a>
 
+            <a href="/admin/hotel-schedules" class="block p-6 bg-white rounded-lg shadow hover:shadow-md transition">
+                <h2 class="text-xl font-bold mb-2 text-pink-600">Hotel Schedules</h2>
+                <p class="text-gray-600">Assign hotels to training schedules.</p>
+            </a>
+
             <a href="/admin/admins" class="block p-6 bg-white rounded-lg shadow hover:shadow-md transition">
                 <h2 class="text-xl font-bold mb-2 text-orange-600">Manage Admins</h2>
                 <p class="text-gray-600">Create and manage admin users.</p>
+            </a>
+
+            <a href="/admin/others-info" class="block p-6 bg-white rounded-lg shadow hover:shadow-md transition">
+                <h2 class="text-xl font-bold mb-2 text-indigo-600">Manage Information</h2>
+                <p class="text-gray-600">Edit system information and settings.</p>
             </a>
         </div>
 
@@ -48,7 +58,7 @@
                 class="block p-6 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg shadow-lg hover:shadow-xl transition text-white">
                 <div class="flex items-center justify-between">
                     <div>
-                        <h3 class="text-xl font-bold mb-2">� Schedule Reports</h3>
+                        <h3 class="text-xl font-bold mb-2">📅 Schedule Reports</h3>
                         <p class="text-indigo-100">View hotel registrations and statistics per schedule</p>
                         <p class="text-sm text-indigo-200 mt-2">Complete token usage logs and registration history</p>
                     </div>
@@ -75,13 +85,14 @@
                 </div>
             </a>
 
-            <div
-                class="block p-6 bg-gradient-to-r from-gray-400 to-gray-500 rounded-lg shadow-lg text-white opacity-75">
+            <a href="/admin/token-report"
+                class="block p-6 bg-gradient-to-r from-amber-500 to-orange-600 rounded-lg shadow-lg hover:shadow-xl transition text-white">
                 <div class="flex items-center justify-between">
                     <div>
-                        <h3 class="text-xl font-bold mb-2">�📈 Token Usage Report</h3>
-                        <p class="text-gray-200">Detailed token usage analytics</p>
-                        <p class="text-sm text-gray-300 mt-2">Coming Soon</p>
+                        <h3 class="text-xl font-bold mb-2">📈 Token Usage Report</h3>
+                        <p class="text-amber-100">Detailed token usage analytics with charts</p>
+                        <p class="text-sm text-amber-200 mt-2">Filter by schedule, session, hotel with visual insights
+                        </p>
                     </div>
                     <svg class="w-12 h-12 opacity-50" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd"
@@ -89,7 +100,7 @@
                             clip-rule="evenodd" />
                     </svg>
                 </div>
-            </div>
+            </a>
         </div>
     </div>
 

@@ -12,8 +12,8 @@ class HotelService {
         return hotel;
     }
 
-    static async createHotel(name, tokenQuota, adminId, clientInfo = {}) {
-        const hotelId = await Hotel.create(name, tokenQuota);
+    static async createHotel(name, tokenQuota, gdriveLink, overhandleFormLink, adminId, clientInfo = {}) {
+        const hotelId = await Hotel.create(name, tokenQuota, gdriveLink, overhandleFormLink);
 
         // Log creation
         if (adminId) {
@@ -23,7 +23,7 @@ class HotelService {
                 action: 'CREATE',
                 entity_type: 'hotel',
                 entity_id: hotelId,
-                new_values: { name, token_quota: tokenQuota },
+                new_values: { name, token_quota: tokenQuota, gdrive_link: gdriveLink, overhandle_form_link: overhandleFormLink },
                 ip_address: clientInfo.ip_address,
                 user_agent: clientInfo.user_agent
             });
@@ -47,7 +47,7 @@ class HotelService {
                 action: 'UPDATE',
                 entity_type: 'hotel',
                 entity_id: id,
-                old_values: { name: oldHotel.name, token_quota: oldHotel.token_quota },
+                old_values: { name: oldHotel.name, token_quota: oldHotel.token_quota, gdrive_link: oldHotel.gdrive_link, overhandle_form_link: oldHotel.overhandle_form_link },
                 new_values: data,
                 ip_address: clientInfo.ip_address,
                 user_agent: clientInfo.user_agent

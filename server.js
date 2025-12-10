@@ -30,6 +30,8 @@ app.use('/api/admin/admins', adminManagementRoutes);
 app.use('/api/admin/reports', reportRoutes);
 app.use('/api/admin/audit-logs', auditLogRoutes);
 app.use('/api/vouchers', voucherRoutes);
+app.use('/api/admin/hotel-schedules', require('./src/routes/adminHotelScheduleRoutes'));
+app.use('/api/admin/others-information', require('./src/routes/adminOthersInformationRoutes'));
 
 // Public API for dropdowns (Reusing controllers but bypassing auth for these specific routes)
 // Note: In a real app, we might want separate controllers or cleaner route structure.
@@ -76,6 +78,18 @@ app.get('/admin/register', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'admin-register.html'));
 });
 
+app.get('/admin/others-info', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'admin-others-info.html'));
+});
+
+app.get('/information', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'information.html'));
+});
+
+// Public endpoint for others information (e.g. warnings, terms)
+const AdminOthersInformationController = require('./src/controllers/adminOthersInformationController');
+app.get('/api/public/others-information', AdminOthersInformationController.getAll);
+
 app.get('/admin/dashboard', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'admin-dashboard.html'));
 });
@@ -92,6 +106,10 @@ app.get('/admin/schedules', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'admin-schedules.html'));
 });
 
+app.get('/admin/hotel-schedules', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'admin-hotel-schedules.html'));
+});
+
 app.get('/admin/admins', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'admin-admins.html'));
 });
@@ -102,6 +120,10 @@ app.get('/admin/reports', (req, res) => {
 
 app.get('/admin/audit-logs', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'admin-audit-logs.html'));
+});
+
+app.get('/admin/token-report', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'admin-token-report.html'));
 });
 
 // Start server

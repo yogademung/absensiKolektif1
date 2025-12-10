@@ -1,0 +1,16 @@
+﻿        <div class="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-6 rounded-lg shadow-lg mb-8">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h2 class="text-lg font-semibold mb-2">Token Information</h2>
+                    <p class="text-sm opacity-90" id="hotelName">Loading...</p>
+                    <div class="mt-4">
+                        <p class="text-xs opacity-75">Token Expiration</p>
+                        <p class="text-lg font-bold" id="tokenExpiration">-</p>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <p class="text-sm opacity-90">Remaining Tokens</p>
+                    <p class="text-4xl font-bold" id="remainingTokens">-</p>
+                </div>
+            </div>
+        </div>
