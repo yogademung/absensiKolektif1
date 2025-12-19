@@ -38,8 +38,8 @@ function printSchedule() {
     Array.from(tbody.rows).forEach(row => {
         let rowHtml = '<tr>';
         Array.from(row.cells).forEach((cell, index) => {
-            // Check if this is the Zoom Link column (index 5) or Training Video column (index 6)
-            if (index === 5 || index === 6) {
+            // Check if this is the Zoom Link column (index 5)
+            if (index === 5) {
                 const link = cell.querySelector('a');
                 if (link && link.href) {
                     // Display the actual URL
@@ -159,7 +159,7 @@ function exportScheduleToCSV() {
     }
 
     // CSV Headers with semicolon delimiter
-    let csv = 'sep=;\nDate;Module;Session;Time;Staff Name;Zoom Link;Training Video;Status;Token Cost\n';
+    let csv = 'sep=;\nDate;Module;Session;Time;Staff Name;Zoom Link;Status;Token Cost\n';
 
     // Add data rows
     rows.forEach(row => {
@@ -326,9 +326,6 @@ window.filterHistory = function (status) {
                 <td class="px-6 py-4 whitespace-nowrap text-sm">${voucher.staff_name}</td>
                 <td class="px-6 py-4 text-sm">
                     ${formatZoomLink(voucher.zoom_link)}
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm">
-                    ${voucher.video_link ? `<a href="${voucher.video_link}" target="_blank" class="text-green-600 hover:underline">Watch Video</a>` : '<span class="text-gray-400">Not Available</span>'}
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
                     <span class="px-2 py-1 text-xs font-semibold rounded-full ${statusClass}">
