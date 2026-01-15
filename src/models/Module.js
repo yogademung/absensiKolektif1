@@ -11,24 +11,19 @@ class Module {
         return rows[0];
     }
 
-    static async create(name, description) {
-        const [result] = await db.execute('INSERT INTO training_modules (name, description) VALUES (?, ?)', [name, description]);
+    static async create(name, description, usage_config = null) {
+        const [result] = await db.execute(
+            'INSERT INTO training_modules (name, description, usage_config) VALUES (?, ?, ?)',
+            [name, description, usage_config ? JSON.stringify(usage_config) : null]
+        );
         return result.insertId;
     }
 
-    static async update(id, name, description) {
-        await db.execute('UPDATE training_modules SET name = ?, description = ? WHERE id = ?', [name, description, id]);
-    }
-
-    static async delete(id) {
-        await db.execute('DELETE FROM training_modules WHERE id = ?', [id]);
-    }
-
     static async update(id, data) {
-        const { name, description } = data;
+        const { name, description, usage_config } = data;
         await db.execute(
-            'UPDATE training_modules SET name = ?, description = ? WHERE id = ?',
-            [name, description || null, id]
+            'UPDATE training_modules SET name = ?, description = ?, usage_config = ? WHERE id = ?',
+            [name, description || null, usage_config ? JSON.stringify(usage_config) : null, id]
         );
     }
 }

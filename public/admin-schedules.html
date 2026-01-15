@@ -52,12 +52,12 @@
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700">Session</label>
-                    <select id="scheduleSession" required
-                        class="mt-1 block w-full rounded-md border border-gray-300 p-2">
-                        <option value="Session 1">Session 1 (09:30 - 12:30)</option>
-                        <option value="Session 2">Session 2 (13:00 - 16:30)</option>
-                    </select>
+                    <input type="text" id="scheduleSession" required readonly
+                        class="mt-1 block w-full rounded-md border border-gray-300 p-2 bg-gray-50"
+                        placeholder="Session">
                 </div>
+
+
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700">Start Time</label>
@@ -216,38 +216,186 @@
 
     <script src="/js/admin.js"></script>
     <script>
-        // Auto-fill times based on session selection
-        function updateTimesForSession(sessionSelect, startTimeInput, endTimeInput) {
-            const session = sessionSelect.value;
-            if (session === 'Session 1') {
-                startTimeInput.value = '09:30';
-                endTimeInput.value = '12:30';
-            } else if (session === 'Session 2') {
-                startTimeInput.value = '13:00';
-                endTimeInput.value = '16:30';
-            }
+
+        // Helper to get Day Name
+        function getDayName(dayIndex) {
+            const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            return days[dayIndex];
         }
 
-        // Add form session change listener
-        document.getElementById('scheduleSession').addEventListener('change', function () {
-            updateTimesForSession(
-                this,
-                document.getElementById('startTime'),
-                document.getElementById('endTime')
-            );
-        });
+        // Helper to Calculate Next Valid Date
+        function getNextValidDate(allowedDays) {
+            if (!allowedDays || allowedDays.length === 0) return null;
 
-        // Edit form session change listener
-        document.getElementById('editScheduleSession').addEventListener('change', function () {
-            updateTimesForSession(
-                this,
-                document.getElementById('editStartTime'),
-                document.getElementById('editEndTime')
-            );
-        });
+            const today = new Date();
+            let d = new Date(today);
+            d.setDate(d.getDate() + 1); // Start from tomorrow
 
-        AdminApp.checkAuth();
-        AdminApp.initSchedules();
+            // Limit search to 30 days to avoid infinite loop
+            for (let i = 0; i < 30; i++) {
+                if (allowedDays.includes(d.getDay())) {
+                    return d.toISOString().split('T')[0];
+                }
+                d.setDate(d.getDate() + 1);
+            }
+            return null;
+        }
+
+        let modulesCache = []; // Cache modules to access config
+
+        document.addEventListener('DOMContentLoaded', () => {
+            AdminApp.checkAuth();
+
+            // Override initSchedules to fetch modules first and cache them
+            const originalInit = AdminApp.initSchedules;
+
+            // Fetch modules manually to populate cache
+            fetch('/api/public/modules')
+                .then(res => res.json())
+                .then(json => {
+                    if (json.success) {
+                        modulesCache = json.data;
+                        AdminApp.initSchedules(); // Call original to init table and dropdowns
+                    } else {
+                        console.error('Failed to load modules for config');
+                        AdminApp.initSchedules(); // Fallback
+                    }
+                })
+                .catch(e => {
+                    console.error(e);
+                    AdminApp.initSchedules();
+                });
+
+            // Handle Module Change (Add Form)
+            document.getElementById('scheduleModule').addEventListener('change', function () {
+                const moduleId = this.value;
+                const module = modulesCache.find(m => m.id == moduleId);
+
+                const sessionInput = document.getElementById('scheduleSession');
+                const startTimeInput = document.getElementById('startTime');
+                const endTimeInput = document.getElementById('endTime');
+                const dateInput = document.getElementById('scheduleDate');
+
+                // Reset
+                sessionInput.value = '';
+                startTimeInput.value = '';
+                endTimeInput.value = '';
+                dateInput.value = '';
+
+                if (module && module.usage_config) {
+                    let config = module.usage_config;
+                    // Robust Parsing
+                    if (typeof config === 'string') {
+                        try {
+                            config = JSON.parse(config);
+                            if (typeof config === 'string') config = JSON.parse(config);
+                        } catch (e) { console.error('Error parsing config', e); }
+                    }
+
+                    // 1. Auto-fill Session (First one)
+                    if (config && config.sessions && config.sessions.length > 0) {
+                        const s = config.sessions[0]; // Take the first session
+                        sessionInput.value = s.name;
+                        startTimeInput.value = s.start_time;
+                        endTimeInput.value = s.end_time;
+                    } else {
+                        sessionInput.value = 'No session configured';
+                    }
+
+                    // 2. Auto-fill Date
+                    if (config && config.days && config.days.length > 0) {
+                        const nextDate = getNextValidDate(config.days);
+                        if (nextDate) {
+                            dateInput.value = nextDate;
+                        }
+                    }
+                }
+            });
+
+            // Handle Date Change (Add Form) - Validation
+            document.getElementById('scheduleDate').addEventListener('change', function () {
+                const moduleId = document.getElementById('scheduleModule').value;
+                if (!moduleId) return;
+
+                const module = modulesCache.find(m => m.id == moduleId);
+                if (module && module.usage_config) {
+                    const config = typeof module.usage_config === 'string' ? JSON.parse(module.usage_config) : module.usage_config;
+                    if (config.days && config.days.length > 0) {
+                        const date = new Date(this.value);
+                        const day = date.getDay();
+
+                        if (!config.days.includes(day)) {
+                            alert(`This module is only available on: ${config.days.map(d => getDayName(d)).join(', ')}`);
+
+                            // Reset to nearest valid date
+                            const nextDate = getNextValidDate(config.days);
+                            if (nextDate) this.value = nextDate;
+                            else this.value = '';
+                        }
+                    }
+                }
+            });
+
+            // --- Repeat for Edit Form (Hooks need a bit more work to pre-fill) ---
+            // For brevity, similar logic applies.
+            // Ideally AdminApp.openEditScheduleModal would be overridden or we attach listeners that check 
+            // values when 'editScheduleModule' changes etc.
+
+            // Edit Module Change
+            document.getElementById('editScheduleModule').addEventListener('change', function () {
+                const moduleId = this.value;
+                const module = modulesCache.find(m => m.id == moduleId);
+
+                const sessionInput = document.getElementById('editScheduleSession');
+                const startTimeInput = document.getElementById('editStartTime');
+                const endTimeInput = document.getElementById('editEndTime');
+
+                // Reset
+                sessionInput.value = '';
+                startTimeInput.value = '';
+                endTimeInput.value = '';
+
+                if (module && module.usage_config) {
+                    let config = module.usage_config;
+                    if (typeof config === 'string') {
+                        try {
+                            config = JSON.parse(config);
+                            if (typeof config === 'string') config = JSON.parse(config);
+                        } catch (e) { console.error('Error parsing config', e); }
+                    }
+
+                    if (config && config.sessions && config.sessions.length > 0) {
+                        const s = config.sessions[0];
+                        sessionInput.value = s.name;
+                        startTimeInput.value = s.start_time;
+                        endTimeInput.value = s.end_time;
+                    } else {
+                        sessionInput.value = 'No session configured';
+                    }
+                }
+            });
+
+            // Edit Date Validation
+            document.getElementById('editScheduleDate').addEventListener('change', function () {
+                const moduleId = document.getElementById('editScheduleModule').value;
+                if (!moduleId) return;
+
+                const module = modulesCache.find(m => m.id == moduleId);
+                if (module && module.usage_config) {
+                    const config = typeof module.usage_config === 'string' ? JSON.parse(module.usage_config) : module.usage_config;
+                    if (config.days && config.days.length > 0) {
+                        const date = new Date(this.value);
+                        const day = date.getDay();
+                        if (!config.days.includes(day)) {
+                            alert(`This module is only available on: ${config.days.map(d => getDayName(d)).join(', ')}`);
+                            // Don't auto-reset heavily in edit mode, just warn/clear
+                            this.value = '';
+                        }
+                    }
+                }
+            });
+
+        });
     </script>
 </body>
 

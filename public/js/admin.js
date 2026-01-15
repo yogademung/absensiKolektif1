@@ -216,14 +216,40 @@ const AdminApp = {
             data.data.forEach(mod => {
                 const div = document.createElement('div');
                 div.className = 'bg-white p-6 rounded-lg shadow';
+                let configInfo = '';
+                if (mod.usage_config) {
+                    try {
+                        const config = typeof mod.usage_config === 'string' ? JSON.parse(mod.usage_config) : mod.usage_config;
+                        if (config) {
+                            const daysMap = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+                            const dayNames = (config.days || []).map(d => daysMap[d]).join(', ');
+                            const sessionNames = (config.sessions || []).map(s => s.name).join(', ') || 'No sessions';
+
+                            configInfo = `
+                                <div class="mt-3 pt-3 border-t border-gray-100 text-sm">
+                                    <div class="flex items-center text-gray-600 mb-1">
+                                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                        <span>${dayNames || 'No days configured'}</span>
+                                    </div>
+                                    <div class="flex items-center text-gray-600">
+                                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                        <span class="truncate" title="${sessionNames}">${sessionNames}</span>
+                                    </div>
+                                </div>
+                            `;
+                        }
+                    } catch (e) { console.error('Error rendering card config', e); }
+                }
+
                 div.innerHTML = `
                     <div class="flex justify-between items-start mb-3">
                         <h3 class="text-lg font-bold text-gray-900">${mod.name}</h3>
                         <button onclick="AdminApp.deleteModule(${mod.id})" class="text-red-500 hover:text-red-700">&times;</button>
                     </div>
                     <p class="text-gray-600 mb-4">${mod.description || 'No description'}</p>
+                    ${configInfo}
                     <button onclick="AdminApp.editModule(${mod.id}, '${mod.name.replace(/'/g, "\\'")}', '${(mod.description || '').replace(/'/g, "\\'")}')" 
-                        class="text-green-600 hover:text-green-900 font-medium">
+                        class="text-green-600 hover:text-green-900 font-medium mt-2">
                         Edit
                     </button>
                 `;

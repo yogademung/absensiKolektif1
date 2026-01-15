@@ -13,12 +13,12 @@ class AdminModuleController {
 
     static async create(req, res) {
         try {
-            const { name, description } = req.body;
+            const { name, description, usage_config } = req.body;
             if (!name) return response(res, 400, false, 'Name is required');
 
             const adminId = req.admin?.id;
             const clientInfo = req.clientInfo;
-            const id = await ModuleService.createModule(name, description, adminId, clientInfo);
+            const id = await ModuleService.createModule(name, description, usage_config, adminId, clientInfo);
             return response(res, 201, true, 'Module created', { id });
         } catch (error) {
             return response(res, 500, false, error.message);
@@ -28,11 +28,13 @@ class AdminModuleController {
     static async update(req, res) {
         try {
             const { id } = req.params;
-            const { name, description } = req.body;
+            const { name, description, usage_config } = req.body;
+            console.log('DEBUG UPDATE MODULE:', id, JSON.stringify(req.body)); // Added Log
+
             const adminId = req.admin?.id;
             const clientInfo = req.clientInfo;
 
-            await ModuleService.updateModule(id, { name, description }, adminId, clientInfo);
+            await ModuleService.updateModule(id, { name, description, usage_config }, adminId, clientInfo);
             return response(res, 200, true, 'Module updated');
         } catch (error) {
             return response(res, 500, false, error.message);

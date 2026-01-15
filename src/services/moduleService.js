@@ -12,8 +12,8 @@ class ModuleService {
         return module;
     }
 
-    static async createModule(name, description, adminId, clientInfo = {}) {
-        const moduleId = await Module.create(name, description);
+    static async createModule(name, description, usage_config, adminId, clientInfo = {}) {
+        const moduleId = await Module.create(name, description, usage_config);
 
         // Log creation
         if (adminId) {
@@ -23,7 +23,7 @@ class ModuleService {
                 action: 'CREATE',
                 entity_type: 'module',
                 entity_id: moduleId,
-                new_values: { name, description },
+                new_values: { name, description, usage_config },
                 ip_address: clientInfo.ip_address,
                 user_agent: clientInfo.user_agent
             });
@@ -37,6 +37,8 @@ class ModuleService {
         const oldModule = await Module.findById(id);
         if (!oldModule) throw new Error('Module not found');
 
+        // Merge old data with new data to ensure nothing is lost if partial update (though controller sends full usually)
+        // But here we just pass data to model.
         await Module.update(id, data);
 
         // Log update
@@ -47,7 +49,7 @@ class ModuleService {
                 action: 'UPDATE',
                 entity_type: 'module',
                 entity_id: id,
-                old_values: { name: oldModule.name, description: oldModule.description },
+                old_values: { name: oldModule.name, description: oldModule.description, usage_config: oldModule.usage_config },
                 new_values: data,
                 ip_address: clientInfo.ip_address,
                 user_agent: clientInfo.user_agent
